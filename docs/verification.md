@@ -57,7 +57,7 @@ Local verification before the first push:
 
 The public source was pushed as `01f1ec8` to [takboo/nianbox](https://github.com/takboo/nianbox). SSH port 22 was unavailable; GitHub's SSH-over-443 route succeeded with existing strict host-key verification. The first ARM64 CI run failed during pytest collection. The same `ModuleNotFoundError: nianbox` was reproduced locally with the `pytest` entry point (the previously used `python -m pytest` passed). An explicit project-root pytest path fixes collection; the exact CLI invocation now passes all 19 tests. Docker dependency updates are constrained to Python 3.12 patch/digest changes; interpreter upgrades need deliberate review.
 
-The first successful remote workflow and anonymous GHCR pull still need verification; publication configuration alone is not evidence of a downloadable image. The intended always-on deployment and real phone workflow remain separate acceptance gates.
+The `482106e` workflow passed and published a public multi-platform package. All native Linux AMD64/ARM64 and macOS checks also passed for `6ec3d32`, but its publishing job stalled in QEMU preparation and reported `Failed to restore: Egress is over the account limit.` This was the GitHub Actions image cache, not application data or GHCR. The stalled run was cancelled. Publication now disables QEMU/build caches, installs only the ARM64 emulator and has bounded timeouts. CI also cancels superseded runs and avoids duplicate Dependabot push/PR runs. The final publication and anonymous pull still need verification. The intended always-on deployment and real phone workflow remain separate acceptance gates.
 
 ## Remaining live acceptance
 

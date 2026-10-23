@@ -14,6 +14,8 @@ The public source repository is `takboo/nianbox`; server images are published to
 
 Pushes to `main` run the server suite and restricted-container checks on native Linux AMD64 and ARM64 runners, plus macOS unit tests. Only after those jobs pass does CI publish the multi-platform `:main` and `:sha-<full-commit>` tags, with revision metadata, provenance and an SBOM. CI uses its short-lived `GITHUB_TOKEN` with `packages: write`; no registry credential belongs in this repository. Pull requests and other branches run checks without publishing. No Git tag or GitHub release is created by this workflow.
 
+Publishing uses fresh builds and disables the QEMU image cache. It does not require GitHub Actions cache download capacity. Superseded runs are cancelled automatically; Dependabot uses pull-request checks without a duplicate branch-push run.
+
 For a trial deployment, `.env.example` selects `ghcr.io/takboo/nianbox:main`. For a deployment you want to reproduce or roll back, take the digest from the successful workflow summary and set:
 
 ```dotenv
