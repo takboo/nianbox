@@ -1,0 +1,6 @@
+# Local source builds; deployment uses the prebuilt GHCR image in compose.yaml.
+services:
+  server:
+    image: nianbox-server:local
+    build: ./Server
+    pull_policy: build

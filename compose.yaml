@@ -1,7 +1,7 @@
 name: nianbox
 services:
   server:
-    build: ./Server
+    image: ${NIANBOX_IMAGE:-ghcr.io/takboo/nianbox:main}
     restart: unless-stopped
     environment:
       NIANBOX_API_TOKEN: ${NIANBOX_API_TOKEN:?Set a random API token of at least 32 characters}
@@ -15,7 +15,8 @@ services:
     tmpfs:
       - /tmp:size=16m,mode=1777
     cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
     logging:
       options:
         max-size: 10m

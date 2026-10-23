@@ -3,9 +3,38 @@
 Run Compose on an always-on Linux host so Hermes can work while the Mac is off. The loopback-only default is intentional. Copy `.env.example` to `.env`, generate a secret with `python3 -c 'import secrets; print(secrets.token_urlsafe(48))'` and set `NIANBOX_API_TOKEN`. Restrict `.env` permissions (`chmod 600 .env`). Add the actual HTTPS hostname to `NIANBOX_ALLOWED_HOSTS`; never commit this file. Use the same token in Mac settings and the Hermes environment.
 
 ```sh
-docker compose up -d --build
+docker compose pull
+docker compose up -d --no-build
 docker compose ps
 ```
+
+## Images from GitHub
+
+The public source repository is `takboo/nianbox`; server images are published to `ghcr.io/takboo/nianbox`. Deployment only needs `compose.yaml` and a private `.env`, not Python, Xcode, the source checkout or a local image build. GitHub Container Registry supports anonymous pulls of public packages ([GitHub documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)). Package visibility is separate from repository visibility; verify an anonymous pull after the first publication.
+
+Pushes to `main` run the server suite and restricted-container checks on native Linux AMD64 and ARM64 runners, plus macOS unit tests. Only after those jobs pass does CI publish the multi-platform `:main` and `:sha-<full-commit>` tags, with revision metadata, provenance and an SBOM. CI uses its short-lived `GITHUB_TOKEN` with `packages: write`; no registry credential belongs in this repository. Pull requests and other branches run checks without publishing. No Git tag or GitHub release is created by this workflow.
+
+For a trial deployment, `.env.example` selects `ghcr.io/takboo/nianbox:main`. For a deployment you want to reproduce or roll back, take the digest from the successful workflow summary and set:
+
+```dotenv
+NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:<published-index-digest>
+```
+
+Back up first, record the current digest, change `NIANBOX_IMAGE`, then run `docker compose pull && docker compose up -d --no-build`. Check health and authenticated data before accepting the upgrade. To roll back the binary, restore the previous digest; preserve the data volume and check schema compatibility before downgrading. Never use `down -v` for upgrades. A public image contains application code and locked dependencies; user tasks and tokens are supplied only at runtime.
+
+To build local changes instead:
+
+```sh
+docker compose -f compose.yaml -f compose.build.yaml up -d --build
+```
+
+### Runtime footprint
+
+The runtime uses the official Python 3.12 slim image pinned by multi-platform digest, SQLite and one Uvicorn process. Only pinned production dependencies and `nianbox/*.py` enter the image; wheel-only installation fails rather than introducing a compiler toolchain. There are no test packages, Node, Git, Redis or worker services. Bytecode compilation and pip caches are disabled during installation. The image retains the standard Python slim runtime, including its shell and pip; it is not a distroless or absolutely smallest image. A separate build stage would currently leave the same runtime dependencies, since no compilation occurs.
+
+Compose runs as UID/GID 10001, with a read-only root, a 16 MiB temporary filesystem, all Linux capabilities dropped, no privilege escalation and a PID limit. Only `/data` persists; the host port binds to loopback. Image size and measured memory are recorded in [verification](verification.md). The automated image check also runs under a 128 MiB memory limit and 0.5 CPU; this is a smoke-test constraint, not a production capacity guarantee. Size, process RSS, container memory and download bytes are different measures.
+
+Pinned base images need updates. Dependabot checks Docker and Actions dependencies weekly; review and run the full checks before accepting updates. Rebuild and redeploy deliberately to receive fixes.
 
 Prefer Tailscale Serve on the host (Tailscale installed, signed in, HTTPS enabled for the tailnet):
 

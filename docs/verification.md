@@ -1,6 +1,6 @@
 # Verification and remaining acceptance
 
-Date: 2026-10-23. Baseline: Peekaboo `54c23bf`. The workspace was empty (no local commits, files or data) when implementation began. Development is local on `codex/nianbox-macos`; nothing has been pushed or published.
+Date: 2026-10-23. Baseline: Peekaboo `54c23bf`. The workspace was empty (no local commits, files or data) when implementation began. Work began locally on `codex/nianbox-macos`. Remote publication was subsequently authorized by the user; see the image distribution follow-up below.
 
 ## Phase 1 — macOS-only fork and standalone server
 
@@ -43,12 +43,26 @@ All **6 native VM checks passed**: capture/status/menu/completed history, real O
 
 Guest Accessibility/event access was already available. Screenshot capture produced a guest screen-recording approval dialog; it was not automatically approved, and no host permissions were changed. After recording results, the fixture, tunnel and test container were cleaned up and the VM returned to stopped. This follow-up also reran the 19 server tests and deterministic generation check successfully.
 
+## GitHub and image distribution follow-up — 2026-10-23
+
+The user explicitly authorized a public `takboo/nianbox` repository and public GHCR server images. Distribution configuration now separates pull-only deployment (`compose.yaml`) from optional local builds (`compose.build.yaml`). CI checks native Linux AMD64/ARM64 and macOS before publishing a multi-platform image on `main`; other branches and pull requests cannot publish. Docker/Actions updates are tracked by Dependabot.
+
+Local verification before the first push:
+
+- **19 server tests, 60 macOS unit tests**, deterministic macOS project verification, `git diff --check` and Actionlint 1.7.12 passed. No desktop automation was run.
+- Official Python 3.12.15 slim/trixie is pinned to its multi-platform digest. Production input allowlisting, wheel-only/no-bytecode installation and an explicit UID/GID replace the earlier loose context and default group.
+- ARM64 image `sha256:105e01b824b1951f93c564853073fb8c80f48d96e3c1d15f2cb6e2105b2c99ef` is **174,367,639 bytes** locally, versus approximately 184 MB previously. This is uncompressed Docker image size, not network download size. Shell and pip remain from the standard slim runtime; no claim of an absolute minimum or distroless image is made.
+- `Scripts/verify_container.py` passed against the actual image with read-only root, UID/GID 10001, dropped capabilities, no-new-privileges, a private throwaway volume, **128 MiB memory and 0.5 CPU**. Verified authenticated REST/MCP sharing data, all six MCP tools, restart persistence, idempotency replay, stable server identity, backup and export. No pytest/compiler/Git/Node is installed. Process RSS in this sample was **68,752 kB (about 67 MiB)**; capacity under sustained load is not established.
+- Random test tokens existed only in a mode-0600 temporary file and runtime environment. The check removed only its own disposable container and volume. User data and previous verification volumes were preserved.
+
+The first remote workflow and anonymous GHCR pull still need verification after pushing; publication configuration alone is not evidence of a downloadable image. The intended always-on deployment and real phone workflow remain separate acceptance gates.
+
 ## Remaining live acceptance
 
 1. Deploy Compose on the intended always-on host and verify the real HTTPS/Tailscale URL and ACLs from the Hermes host and Mac.
 2. Use the actual phone Hermes channel for natural-language creation, querying, modification and completion. Verify while the Mac is powered off, then start NianBox and observe the task/history.
 3. VM native drag/drop, shortcut, corner reveal and disk reopen have passed. Complete physical input/multi-display/Spaces, live network recovery, launch-at-login and human UX acceptance separately. Full XCUITest execution requires a guest Xcode runtime.
-4. Notarization/distribution, old Peekaboo data migration and production cutover are outside the completed local verification. No install, release or remote push has been performed.
+4. macOS notarization/distribution, old Peekaboo data migration and production cutover are outside the completed local verification. No Mac installation or GitHub release has been performed. Server image publication is tracked separately above.
 
 ## Reproduce without operating the desktop
 

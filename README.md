@@ -25,10 +25,11 @@ The generator requires Ruby 3.2+ and Bundler 4. The checked-in project is genera
 ```sh
 cp .env.example .env
 # Set NIANBOX_API_TOKEN in .env to a generated secret (at least 32 characters).
-docker compose up -d --build
+docker compose pull
+docker compose up -d --no-build
 ```
 
-The default port binds to `127.0.0.1:8088`. Data lives in the named `nianbox-data` volume. HTTPS/private-network deployment, backups and recovery: [deployment](docs/deployment.md). Hermes configuration: [Hermes](docs/hermes.md). Protocol and conflict rules: [sync](docs/sync.md).
+Prebuilt Linux AMD64/ARM64 images come from `ghcr.io/takboo/nianbox`; pin the published digest for reproducible deployments. To build local source, use `docker compose -f compose.yaml -f compose.build.yaml up -d --build`. The default port binds to `127.0.0.1:8088`. Data lives in the named `nianbox-data` volume. HTTPS/private-network deployment, image updates, backups and recovery: [deployment](docs/deployment.md). Hermes configuration: [Hermes](docs/hermes.md). Protocol and conflict rules: [sync](docs/sync.md).
 
 For development:
 
