@@ -37,17 +37,17 @@ for pixelSize in sizes {
     let canvas = NSRect(x: 0, y: 0, width: pixelSize, height: pixelSize)
     // Let macOS apply the icon mask exactly once. A transparent, pre-rounded
     // background is treated like legacy artwork and gets an extra Dock frame.
-    NSColor.white.setFill()
+    NSColor(calibratedRed: 0.14, green: 0.23, blue: 0.27, alpha: 1).setFill()
     canvas.fill()
 
-    guard let baseSymbol = NSImage(systemSymbolName: "eye", accessibilityDescription: nil) else {
+    guard let baseSymbol = NSImage(systemSymbolName: "archivebox.fill", accessibilityDescription: nil) else {
         throw CocoaError(.fileReadUnknown)
     }
     let pointConfiguration = NSImage.SymbolConfiguration(
         pointSize: CGFloat(pixelSize) * 0.52,
         weight: .medium
     )
-    let blackConfiguration = NSImage.SymbolConfiguration(paletteColors: [.black])
+    let blackConfiguration = NSImage.SymbolConfiguration(paletteColors: [NSColor(calibratedRed: 0.96, green: 0.85, blue: 0.63, alpha: 1)])
     let symbol = baseSymbol.withSymbolConfiguration(pointConfiguration.applying(blackConfiguration)) ?? baseSymbol
     let symbolWidth = CGFloat(pixelSize) * 0.72
     let aspectRatio = symbol.size.height / max(symbol.size.width, 1)

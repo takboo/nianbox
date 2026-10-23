@@ -1,0 +1,5 @@
+# Host-side Caddy; replace the hostname and add it to NIANBOX_ALLOWED_HOSTS.
+nianbox.example.com {
+    reverse_proxy 127.0.0.1:8088
+    # Access logging intentionally omitted; do not log credentials or task bodies.
+}

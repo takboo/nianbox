@@ -1,0 +1,24 @@
+name: nianbox
+services:
+  server:
+    build: ./Server
+    restart: unless-stopped
+    environment:
+      NIANBOX_API_TOKEN: ${NIANBOX_API_TOKEN:?Set a random API token of at least 32 characters}
+      NIANBOX_DB: /data/nianbox.sqlite
+      NIANBOX_ALLOWED_HOSTS: ${NIANBOX_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    ports:
+      - "127.0.0.1:${NIANBOX_PORT:-8088}:8000"
+    volumes:
+      - nianbox-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  nianbox-data:

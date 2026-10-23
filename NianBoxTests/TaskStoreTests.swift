@@ -1,0 +1,782 @@
+import XCTest
+import SwiftData
+import UniformTypeIdentifiers
+@testable import NianBox
+
+final class TaskStoreTests: XCTestCase {
+    func testTaskDragPayloadExportsInternalDataAndPlainText() {
+        let taskID = UUID()
+        let payload = TaskDragPayload(taskID: taskID, title: "Paste me")
+        let provider = payload.itemProvider()
+
+        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.text.identifier))
+        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(
+            TaskDragPayload.internalTaskType.identifier
+        ))
+
+        let internalIDLoaded = expectation(description: "Internal task identity loads")
+        XCTAssertTrue(TaskDragPayload.loadTaskID(from: [provider]) { loadedID in
+            XCTAssertEqual(loadedID, taskID)
+            internalIDLoaded.fulfill()
+        })
+
+        let plainTextLoaded = expectation(description: "Plain-text drag representation loads")
+        provider.loadDataRepresentation(forTypeIdentifier: UTType.utf8PlainText.identifier) { data, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(data, Data("Paste me".utf8))
+            plainTextLoaded.fulfill()
+        }
+        wait(for: [internalIDLoaded, plainTextLoaded], timeout: 1)
+
+    }
+
+    @MainActor
+    func testCreateNormalizesTitleAndRejectsEmptyInput() throws {
+        let store = try makeTestStore()
+
+        XCTAssertNil(store.create(title: "   \n  "))
+        let task = store.create(title: "  Write   release\nnotes  ")
+
+        XCTAssertEqual(task?.title, "Write release notes")
+        XCTAssertEqual(task?.status, .todo)
+        XCTAssertEqual(task?.priority, TaskPriority.none)
+        XCTAssertEqual(store.tasks.count, 1)
+    }
+
+    @MainActor
+    func testCreateReportsPersistenceFailureAndRollsBack() throws {
+        let gate = PersistenceGate()
+        gate.shouldFail = true
+        let store = try makeTestStore(persist: gate.save)
+
+        XCTAssertNil(store.create(title: "Must not disappear"))
+        XCTAssertTrue(store.tasks.isEmpty)
+        XCTAssertNotNil(store.lastErrorMessage)
+    }
+
+    @MainActor
+    func testRefreshSeesChangesSavedByAnotherModelContext() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let store = TaskStore(container: container)
+        let externalContext = ModelContext(container)
+        let externalTask = TaskItem(title: "Created elsewhere", priority: .low)
+
+        externalContext.insert(externalTask)
+        try externalContext.save()
+        store.refresh()
+
+        let imported = try XCTUnwrap(store.tasks.first)
+        XCTAssertEqual(imported.id, externalTask.id)
+        XCTAssertEqual(imported.title, "Created elsewhere")
+
+        externalTask.title = "Updated elsewhere"
+        externalTask.updatedAt = Date(timeIntervalSince1970: 2_000)
+        try externalContext.save()
+        store.refresh()
+
+        XCTAssertEqual(try XCTUnwrap(store.tasks.first).title, "Updated elsewhere")
+    }
+
+    @MainActor
+    func testRefreshHidesDuplicateApplicationIDsWithoutDeletingEitherRow() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let sharedID = UUID()
+        let older = TaskItem(
+            id: sharedID,
+            title: "Older",
+            updatedAt: Date(timeIntervalSince1970: 1_000)
+        )
+        let newer = TaskItem(
+            id: sharedID,
+            title: "Newer",
+            updatedAt: Date(timeIntervalSince1970: 2_000)
+        )
+        context.insert(older)
+        context.insert(newer)
+        try context.save()
+
+        let store = TaskStore(container: container)
+
+        XCTAssertEqual(store.tasks.count, 1)
+        XCTAssertEqual(store.tasks.first?.title, "Newer")
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<TaskItem>()), 2)
+    }
+
+    @MainActor
+    func testEqualTimestampDuplicatesAreHiddenWithoutCrossDeviceDeletion() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let sharedID = UUID()
+        let timestamp = Date(timeIntervalSince1970: 2_000)
+        context.insert(TaskItem(id: sharedID, title: "Alpha", updatedAt: timestamp))
+        context.insert(TaskItem(id: sharedID, title: "Beta", updatedAt: timestamp))
+        try context.save()
+
+        let store = TaskStore(container: container)
+
+        XCTAssertEqual(store.tasks.map(\.title), ["Beta"])
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<TaskItem>()), 2)
+        store.refresh()
+        XCTAssertEqual(store.tasks.map(\.title), ["Beta"])
+    }
+
+    @MainActor
+    func testMutationsAndDeleteApplyToEveryPhysicalDuplicate() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let seedContext = ModelContext(container)
+        let sharedID = UUID()
+        seedContext.insert(TaskItem(id: sharedID, title: "Older", priority: .low))
+        seedContext.insert(TaskItem(
+            id: sharedID,
+            title: "Visible",
+            priority: .medium,
+            updatedAt: Date().addingTimeInterval(1)
+        ))
+        try seedContext.save()
+        let store = TaskStore(container: container)
+        let visible = try XCTUnwrap(store.tasks.first)
+
+        XCTAssertTrue(store.update(visible, title: "Unified", priority: .high, status: .done))
+        var verificationContext = ModelContext(container)
+        var replicas = try verificationContext.fetch(FetchDescriptor<TaskItem>())
+        XCTAssertEqual(replicas.count, 2)
+        XCTAssertTrue(replicas.allSatisfy {
+            $0.title == "Unified"
+                && $0.priority == .high
+                && $0.status == .done
+                && $0.completedAt != nil
+        })
+
+        XCTAssertTrue(store.delete(try XCTUnwrap(store.tasks.first)))
+        verificationContext = ModelContext(container)
+        replicas = try verificationContext.fetch(FetchDescriptor<TaskItem>())
+        XCTAssertTrue(replicas.isEmpty)
+    }
+
+    @MainActor
+    func testExactDuplicateSelectionStaysStableAcrossRefreshes() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let seedContext = ModelContext(container)
+        let sharedID = UUID()
+        let timestamp = Date(timeIntervalSince1970: 2_000)
+        seedContext.insert(TaskItem(id: sharedID, title: "Same", updatedAt: timestamp))
+        seedContext.insert(TaskItem(id: sharedID, title: "Same", updatedAt: timestamp))
+        try seedContext.save()
+        let store = TaskStore(container: container)
+        let selectedID = try XCTUnwrap(store.tasks.first?.persistentModelID)
+
+        for _ in 0..<5 {
+            store.refresh()
+            XCTAssertEqual(store.tasks.first?.persistentModelID, selectedID)
+        }
+    }
+
+    @MainActor
+    func testRemoteDeletionMakesCapturedTaskReferencesNoOps() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let store = TaskStore(container: container)
+        let capturedTask = try XCTUnwrap(store.create(title: "Deleted elsewhere"))
+        let externalContext = ModelContext(container)
+        let externalTask = try XCTUnwrap(
+            try externalContext.fetch(FetchDescriptor<TaskItem>()).first
+        )
+        externalContext.delete(externalTask)
+        try externalContext.save()
+        store.refresh()
+
+        XCTAssertTrue(store.tasks.isEmpty)
+        XCTAssertFalse(store.update(capturedTask, title: "Resurrected"))
+        XCTAssertFalse(store.delete(capturedTask))
+        XCTAssertFalse(store.performPrimaryAction(capturedTask))
+    }
+
+    @MainActor
+    func testRefreshNeverPersistsDuplicateCleanup() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let sharedID = UUID()
+        context.insert(TaskItem(id: sharedID, title: "Older"))
+        context.insert(TaskItem(id: sharedID, title: "Newer", updatedAt: Date().addingTimeInterval(1)))
+        try context.save()
+
+        let gate = PersistenceGate()
+        gate.shouldFail = true
+        let store = TaskStore(container: container, persist: gate.save)
+
+        XCTAssertEqual(store.tasks.map(\.title), ["Newer"])
+        XCTAssertNil(store.lastErrorMessage)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<TaskItem>()), 2)
+    }
+
+    @MainActor
+    func testFailedEditsRestorePersistedValues() throws {
+        let gate = PersistenceGate()
+        let store = try makeTestStore(persist: gate.save)
+        let task = try XCTUnwrap(store.create(title: "Original", priority: .low))
+        gate.shouldFail = true
+
+        XCTAssertFalse(store.rename(task, to: "Changed"))
+        XCTAssertEqual(try XCTUnwrap(store.tasks.first).title, "Original")
+
+        let afterRename = try XCTUnwrap(store.tasks.first)
+        XCTAssertFalse(store.setPriority(.high, for: afterRename))
+        XCTAssertEqual(try XCTUnwrap(store.tasks.first).priority, .low)
+
+        let afterPriority = try XCTUnwrap(store.tasks.first)
+        XCTAssertFalse(store.setStatus(.done, for: afterPriority))
+        let restored = try XCTUnwrap(store.tasks.first)
+        XCTAssertEqual(restored.status, .todo)
+        XCTAssertNil(restored.completedAt)
+    }
+
+    @MainActor
+    func testAtomicUpdateRollsBackEveryFieldOnPersistenceFailure() throws {
+        let gate = PersistenceGate()
+        let store = try makeTestStore(persist: gate.save)
+        let task = try XCTUnwrap(store.create(title: "Original", priority: .low))
+        gate.shouldFail = true
+
+        XCTAssertFalse(store.update(task, title: "Changed", priority: .high, status: .done))
+
+        let restored = try XCTUnwrap(store.tasks.first)
+        XCTAssertEqual(restored.title, "Original")
+        XCTAssertEqual(restored.priority, .low)
+        XCTAssertEqual(restored.status, .todo)
+        XCTAssertNil(restored.completedAt)
+    }
+
+    @MainActor
+    func testFailedDeleteRestoresTask() throws {
+        let gate = PersistenceGate()
+        let store = try makeTestStore(persist: gate.save)
+        let task = try XCTUnwrap(store.create(title: "Keep me"))
+        gate.shouldFail = true
+
+        XCTAssertFalse(store.delete(task))
+        XCTAssertEqual(store.tasks.map(\.title), ["Keep me"])
+    }
+
+    @MainActor
+    func testFailedReorderRestoresOriginalOrder() throws {
+        let gate = PersistenceGate()
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value }, persist: gate.save)
+        let first = try XCTUnwrap(store.create(title: "First", priority: .medium))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let second = try XCTUnwrap(store.create(title: "Second", priority: .medium))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [second.id, first.id])
+        gate.shouldFail = true
+
+        XCTAssertFalse(store.reorder(taskID: second.id, relativeTo: first.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.title), ["Second", "First"])
+    }
+
+    @MainActor
+    func testTaskTransitionsAndRestoreMaintainCompletionDate() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let task = try XCTUnwrap(store.create(title: "Build panel", priority: .high))
+
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        store.advanceToInProgress(task)
+        XCTAssertEqual(task.status, .inProgress)
+        XCTAssertNil(task.completedAt)
+
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        store.markDone(task)
+        XCTAssertEqual(task.status, .done)
+        XCTAssertEqual(task.completedAt, clock.value)
+
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        store.setStatus(.todo, for: task)
+        XCTAssertEqual(task.status, .todo)
+        XCTAssertNil(task.completedAt)
+    }
+
+    @MainActor
+    func testCreatingDoneTaskSetsCompletionDate() throws {
+        let timestamp = Date(timeIntervalSince1970: 1_500)
+        let store = try makeTestStore(now: { timestamp })
+
+        let task = try XCTUnwrap(store.create(title: "Already finished", status: .done))
+
+        XCTAssertEqual(task.completedAt, timestamp)
+    }
+
+    @MainActor
+    func testPartialEditFromStaleReferencePreservesImportedFields() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let store = TaskStore(container: container)
+        let capturedTask = try XCTUnwrap(store.create(title: "Original", priority: .low))
+
+        let externalContext = ModelContext(container)
+        let importedTask = try XCTUnwrap(
+            externalContext.fetch(FetchDescriptor<TaskItem>()).first
+        )
+        importedTask.priority = .high
+        importedTask.status = .done
+        importedTask.completedAt = Date(timeIntervalSince1970: 2_000)
+        importedTask.updatedAt = Date(timeIntervalSince1970: 2_000)
+        try externalContext.save()
+        store.refresh()
+
+        XCTAssertTrue(store.update(capturedTask, title: "Renamed locally"))
+        let saved = try XCTUnwrap(store.tasks.first)
+        XCTAssertEqual(saved.title, "Renamed locally")
+        XCTAssertEqual(saved.priority, .high)
+        XCTAssertEqual(saved.status, .done)
+        XCTAssertEqual(saved.completedAt, Date(timeIntervalSince1970: 2_000))
+    }
+
+    @MainActor
+    func testOrderingUsesPriorityThenMostRecentUpdate() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let low = try XCTUnwrap(store.create(title: "Low", priority: .low))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let highOlder = try XCTUnwrap(store.create(title: "High older", priority: .high))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let highNewer = try XCTUnwrap(store.create(title: "High newer", priority: .high))
+
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [highNewer.id, highOlder.id, low.id])
+
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        store.rename(highOlder, to: "High most recent")
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [highOlder.id, highNewer.id, low.id])
+    }
+
+    @MainActor
+    func testNonePrioritySortsAfterLow() throws {
+        let store = try makeTestStore()
+        let none = try XCTUnwrap(store.create(title: "None", priority: .none))
+        let low = try XCTUnwrap(store.create(title: "Low", priority: .low))
+
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [low.id, none.id])
+    }
+
+    @MainActor
+    func testDeleteRemovesTask() throws {
+        let store = try makeTestStore()
+        let task = try XCTUnwrap(store.create(title: "Temporary"))
+        store.delete(task)
+        XCTAssertTrue(store.tasks.isEmpty)
+    }
+
+    @MainActor
+    func testPrimaryActionReturnsDoneTaskToTodo() throws {
+        let store = try makeTestStore()
+        let task = try XCTUnwrap(store.create(title: "Toggle me"))
+
+        store.performPrimaryAction(task)
+        XCTAssertEqual(task.status, .done)
+        XCTAssertNotNil(task.completedAt)
+
+        store.performPrimaryAction(task)
+        XCTAssertEqual(task.status, .todo)
+        XCTAssertNil(task.completedAt)
+    }
+
+    @MainActor
+    func testDoubleClickActionMovesBetweenTodoAndInProgress() throws {
+        let store = try makeTestStore()
+        let task = try XCTUnwrap(store.create(title: "Toggle progress"))
+
+        store.performDoubleClickAction(task)
+        XCTAssertEqual(task.status, .inProgress)
+
+        store.performDoubleClickAction(task)
+        XCTAssertEqual(task.status, .todo)
+
+        store.markDone(task)
+        store.performDoubleClickAction(task)
+        XCTAssertEqual(task.status, .done)
+    }
+
+    @MainActor
+    func testBacklogReusesTaskRulesAndPromotesToTodo() throws {
+        let store = try makeTestStore()
+        let idea = try XCTUnwrap(store.create(
+            title: "Explore an idea",
+            priority: .high,
+            status: .backlog
+        ))
+
+        XCTAssertEqual(idea.status, .backlog)
+        XCTAssertEqual(idea.priority, .high)
+        XCTAssertEqual(store.orderedTasks(for: .backlog).map(\.id), [idea.id])
+
+        store.performPrimaryAction(idea)
+        XCTAssertEqual(idea.status, .todo)
+        XCTAssertNil(idea.completedAt)
+
+        store.setStatus(.backlog, for: idea)
+        store.performDoubleClickAction(idea)
+        XCTAssertEqual(idea.status, .todo)
+    }
+
+    @MainActor
+    func testScopeSnapshotIsTheSingleSourceForSectionsAndCounts() throws {
+        let store = try makeTestStore()
+        _ = store.create(title: "Todo")
+        _ = store.create(title: "Progress")
+        _ = store.create(title: "Done")
+        _ = store.create(title: "Idea", status: .backlog)
+        let progress = try XCTUnwrap(store.tasks.first { $0.title == "Progress" })
+        let done = try XCTUnwrap(store.tasks.first { $0.title == "Done" })
+        store.setStatus(.inProgress, for: progress)
+        store.setStatus(.done, for: done)
+
+        let taskSnapshot = store.snapshot(for: .tasks)
+        XCTAssertEqual(taskSnapshot.visibleCount, 3)
+        XCTAssertEqual(taskSnapshot.activeCount, 2)
+        XCTAssertEqual(taskSnapshot.sections.map(\.status), [.inProgress, .todo, .done])
+
+        let backlogSnapshot = store.snapshot(for: .backlog)
+        XCTAssertEqual(backlogSnapshot.visibleCount, 1)
+        XCTAssertEqual(backlogSnapshot.activeCount, 1)
+        XCTAssertEqual(backlogSnapshot.sections.map(\.status), [.backlog])
+    }
+
+    @MainActor
+    func testSnapshotMemoizationStaysCoherentAcrossMutations() throws {
+        let store = try makeTestStore()
+        let task = try XCTUnwrap(store.create(title: "Cached"))
+
+        XCTAssertEqual(store.snapshot(for: .tasks).visibleCount, 1)
+        // Second call between edits must serve the same content (cache hit).
+        XCTAssertEqual(store.snapshot(for: .tasks).sections.map(\.status), [.todo])
+
+        store.setStatus(.inProgress, for: task)
+        XCTAssertEqual(store.snapshot(for: .tasks).sections.map(\.status), [.inProgress])
+
+        store.setStatus(.backlog, for: task)
+        XCTAssertEqual(store.snapshot(for: .tasks).visibleCount, 0)
+        XCTAssertEqual(store.snapshot(for: .backlog).visibleCount, 1)
+
+        store.delete(task)
+        XCTAssertEqual(store.snapshot(for: .backlog).visibleCount, 0)
+
+        store.refresh()
+        XCTAssertEqual(store.snapshot(for: .backlog).visibleCount, 0)
+    }
+
+    @MainActor
+    func testExternalDragStartsPendingTasksWithoutReopeningDoneTasks() throws {
+        let store = try makeTestStore()
+        let todo = try XCTUnwrap(store.create(title: "Todo"))
+        let backlog = try XCTUnwrap(store.create(title: "Idea", status: .backlog))
+        let inProgress = try XCTUnwrap(store.create(title: "Working", status: .inProgress))
+        let done = try XCTUnwrap(store.create(title: "Finished", status: .done))
+
+        XCTAssertTrue(store.startAfterExternalDrag(taskID: todo.id))
+        XCTAssertEqual(todo.status, .inProgress)
+
+        XCTAssertTrue(store.startAfterExternalDrag(taskID: backlog.id))
+        XCTAssertEqual(backlog.status, .inProgress)
+
+        XCTAssertTrue(store.startAfterExternalDrag(taskID: inProgress.id))
+        XCTAssertEqual(inProgress.status, .inProgress)
+
+        XCTAssertFalse(store.startAfterExternalDrag(taskID: done.id))
+        XCTAssertEqual(done.status, .done)
+        XCTAssertFalse(store.startAfterExternalDrag(taskID: UUID()))
+    }
+
+    @MainActor
+    func testReorderWithinSameStatusAndPriorityPersists() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let first = try XCTUnwrap(store.create(title: "First", priority: .medium))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let second = try XCTUnwrap(store.create(title: "Second", priority: .medium))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let third = try XCTUnwrap(store.create(title: "Third", priority: .medium))
+
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [third.id, second.id, first.id])
+        XCTAssertTrue(store.reorder(taskID: third.id, relativeTo: first.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [second.id, first.id, third.id])
+
+        let firstOrder = first.manualOrder
+        let secondOrder = second.manualOrder
+        XCTAssertTrue(store.reorder(taskID: third.id, relativeTo: second.id))
+        XCTAssertEqual(first.manualOrder, firstOrder)
+        XCTAssertEqual(second.manualOrder, secondOrder)
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [third.id, second.id, first.id])
+
+        XCTAssertTrue(store.reorder(taskID: third.id, relativeTo: first.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [second.id, first.id, third.id])
+
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        store.rename(third, to: "Third renamed")
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [second.id, first.id, third.id])
+
+        clock.value = Date(timeIntervalSince1970: 1_400)
+        let newest = try XCTUnwrap(store.create(title: "Newest", priority: .medium))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [newest.id, second.id, first.id, third.id])
+
+        store.refresh()
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [newest.id, second.id, first.id, third.id])
+    }
+
+    @MainActor
+    func testDropOntoRowReordersWithinSectionAndRestatusesAcrossSections() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let first = try XCTUnwrap(store.create(title: "First"))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let second = try XCTUnwrap(store.create(title: "Second"))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let finished = try XCTUnwrap(store.create(title: "Finished", status: .done))
+
+        // Same section behaves like a plain reorder.
+        XCTAssertTrue(store.drop(taskID: second.id, onto: first.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [first.id, second.id])
+
+        // Another section's row: the task adopts that section's status and
+        // lands next to the target row.
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        XCTAssertTrue(store.drop(taskID: first.id, onto: finished.id))
+        XCTAssertEqual(first.status, .done)
+        XCTAssertNotNil(first.completedAt)
+        XCTAssertEqual(store.orderedTasks(for: .done).map(\.id), [finished.id, first.id])
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [second.id])
+
+        // A cross-section drop keeps the dragged task's own priority.
+        clock.value = Date(timeIntervalSince1970: 1_400)
+        let urgent = try XCTUnwrap(store.create(title: "Urgent", priority: .high))
+        XCTAssertTrue(store.drop(taskID: urgent.id, onto: finished.id))
+        XCTAssertEqual(urgent.status, .done)
+        XCTAssertEqual(urgent.priority, .high)
+
+        XCTAssertFalse(store.drop(taskID: second.id, onto: second.id))
+        XCTAssertFalse(store.drop(taskID: UUID(), onto: second.id))
+        XCTAssertFalse(store.drop(taskID: second.id, onto: UUID()))
+    }
+
+    @MainActor
+    func testDropIntoSectionChangesStatusOnlyAcrossSections() throws {
+        let store = try makeTestStore()
+        let task = try XCTUnwrap(store.create(title: "Task"))
+
+        XCTAssertTrue(store.drop(taskID: task.id, into: .inProgress))
+        XCTAssertEqual(task.status, .inProgress)
+
+        XCTAssertTrue(store.drop(taskID: task.id, into: .done))
+        XCTAssertEqual(task.status, .done)
+        XCTAssertNotNil(task.completedAt)
+
+        // Dropping back into the section it already lives in is a no-op.
+        XCTAssertFalse(store.drop(taskID: task.id, into: .done))
+        XCTAssertFalse(store.drop(taskID: UUID(), into: .todo))
+    }
+
+    @MainActor
+    func testReorderRejectsIncompatibleAndDegenerateDrops() throws {
+        let store = try makeTestStore()
+        let medium = try XCTUnwrap(store.create(title: "Medium", priority: .medium))
+        let high = try XCTUnwrap(store.create(title: "High", priority: .high))
+        let anotherMedium = try XCTUnwrap(store.create(title: "Another", priority: .medium))
+        store.setStatus(.inProgress, for: anotherMedium)
+
+        XCTAssertFalse(store.reorder(taskID: medium.id, relativeTo: medium.id))
+        XCTAssertFalse(store.reorder(taskID: medium.id, relativeTo: high.id))
+        XCTAssertFalse(store.reorder(taskID: medium.id, relativeTo: anotherMedium.id))
+        XCTAssertFalse(store.reorder(taskID: UUID(), relativeTo: medium.id))
+    }
+
+    @MainActor
+    func testPlaceClampsDropsThatCrossPriorityGroups() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let high = try XCTUnwrap(store.create(title: "High", priority: .high))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let firstPlain = try XCTUnwrap(store.create(title: "First plain"))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let secondPlain = try XCTUnwrap(store.create(title: "Second plain"))
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        let thirdPlain = try XCTUnwrap(store.create(title: "Third plain"))
+
+        XCTAssertEqual(
+            store.orderedTasks(for: .todo).map(\.id),
+            [high.id, thirdPlain.id, secondPlain.id, firstPlain.id]
+        )
+
+        // Dragging above a higher-priority row can't outrank it, so the task
+        // lands at the top of its own group instead of snapping back.
+        clock.value = Date(timeIntervalSince1970: 1_400)
+        XCTAssertTrue(store.place(taskID: firstPlain.id, near: high.id))
+        XCTAssertEqual(firstPlain.priority, .none)
+        XCTAssertEqual(
+            store.orderedTasks(for: .todo).map(\.id),
+            [high.id, firstPlain.id, thirdPlain.id, secondPlain.id]
+        )
+
+        // Dragging down past its own group lands at that group's bottom.
+        clock.value = Date(timeIntervalSince1970: 1_500)
+        let secondHigh = try XCTUnwrap(store.create(title: "Second high", priority: .high))
+        XCTAssertEqual(
+            store.orderedTasks(for: .todo).map(\.id),
+            [secondHigh.id, high.id, firstPlain.id, thirdPlain.id, secondPlain.id]
+        )
+        clock.value = Date(timeIntervalSince1970: 1_600)
+        XCTAssertTrue(store.place(taskID: secondHigh.id, near: thirdPlain.id))
+        XCTAssertEqual(secondHigh.priority, .high)
+        XCTAssertEqual(
+            store.orderedTasks(for: .todo).map(\.id),
+            [high.id, secondHigh.id, firstPlain.id, thirdPlain.id, secondPlain.id]
+        )
+
+        // Already at the clamped edge, and cross-section drops, stay rejected.
+        XCTAssertFalse(store.place(taskID: secondHigh.id, near: thirdPlain.id))
+        XCTAssertFalse(store.place(taskID: firstPlain.id, near: high.id))
+        XCTAssertFalse(store.place(taskID: high.id, near: high.id))
+        store.setStatus(.inProgress, for: thirdPlain)
+        XCTAssertFalse(store.place(taskID: firstPlain.id, near: thirdPlain.id))
+    }
+
+    @MainActor
+    func testDropPlacementMatchesWhereTheDropActuallyLands() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let bottom = try XCTUnwrap(store.create(title: "Bottom"))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let top = try XCTUnwrap(store.create(title: "Top"))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let urgent = try XCTUnwrap(store.create(title: "Urgent", priority: .high))
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        let finished = try XCTUnwrap(store.create(title: "Finished", status: .done))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [urgent.id, top.id, bottom.id])
+
+        // Dragging up predicts the edge above the target; the drop confirms it.
+        XCTAssertEqual(store.dropPlacement(taskID: bottom.id, onto: top.id), .above)
+        XCTAssertTrue(store.drop(taskID: bottom.id, onto: top.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [urgent.id, bottom.id, top.id])
+
+        // And dragging down predicts the edge below it.
+        clock.value = Date(timeIntervalSince1970: 1_400)
+        XCTAssertEqual(store.dropPlacement(taskID: bottom.id, onto: top.id), .below)
+        XCTAssertTrue(store.drop(taskID: bottom.id, onto: top.id))
+        XCTAssertEqual(store.orderedTasks(for: .todo).map(\.id), [urgent.id, top.id, bottom.id])
+
+        // Crossing a priority group or a section clamps the landing slot, so no
+        // exact edge may be promised.
+        XCTAssertEqual(store.dropPlacement(taskID: top.id, onto: urgent.id), .join)
+        XCTAssertEqual(store.dropPlacement(taskID: top.id, onto: finished.id), .join)
+
+        XCTAssertNil(store.dropPlacement(taskID: top.id, onto: top.id))
+        XCTAssertNil(store.dropPlacement(taskID: UUID(), onto: top.id))
+        XCTAssertNil(store.dropPlacement(taskID: top.id, onto: UUID()))
+    }
+
+    @MainActor
+    func testDropAcrossSectionsPlacesTheTaskAgainstTheTargetRow() throws {
+        let clock = MutableNow(Date(timeIntervalSince1970: 1_000))
+        let store = try makeTestStore(now: { clock.value })
+        let oldest = try XCTUnwrap(store.create(title: "Oldest", status: .inProgress))
+        clock.value = Date(timeIntervalSince1970: 1_100)
+        let middle = try XCTUnwrap(store.create(title: "Middle", status: .inProgress))
+        clock.value = Date(timeIntervalSince1970: 1_200)
+        let newest = try XCTUnwrap(store.create(title: "Newest", status: .inProgress))
+        clock.value = Date(timeIntervalSince1970: 1_300)
+        let incoming = try XCTUnwrap(store.create(title: "Incoming"))
+        XCTAssertEqual(
+            store.orderedTasks(for: .inProgress).map(\.id),
+            [newest.id, middle.id, oldest.id]
+        )
+
+        // The task carries no manual order from To Do, so without placing it
+        // against the target row it would land wherever its timestamp put it.
+        clock.value = Date(timeIntervalSince1970: 1_400)
+        XCTAssertTrue(store.drop(taskID: incoming.id, onto: oldest.id))
+        XCTAssertEqual(incoming.status, .inProgress)
+        XCTAssertEqual(
+            store.orderedTasks(for: .inProgress).map(\.id),
+            [newest.id, middle.id, oldest.id, incoming.id]
+        )
+    }
+
+    @MainActor
+    func testRefreshKeepsPublishedTasksWhenTheStoreIsUnchanged() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let store = TaskStore(container: container)
+        let task = try XCTUnwrap(store.create(title: "Stable"))
+        let revisionAfterCreate = store.revision
+
+        store.refresh()
+
+        // A local save also posts a store remote change, and rebuilding every
+        // row for an identical fetch is what made drops settle twice.
+        XCTAssertEqual(store.revision, revisionAfterCreate)
+        XCTAssertTrue(store.tasks.first === task)
+
+        // A write the store did not make — an external write — must
+        // still replace the published objects.
+        let externalContext = ModelContext(container)
+        for stored in try externalContext.fetch(FetchDescriptor<TaskItem>()) {
+            stored.title = "Imported"
+        }
+        try externalContext.save()
+
+        store.refresh()
+        XCTAssertGreaterThan(store.revision, revisionAfterCreate)
+        XCTAssertEqual(store.tasks.map(\.title), ["Imported"])
+        XCTAssertFalse(store.tasks.first === task)
+    }
+
+    @MainActor
+    func testRebalanceUpdatesManualOrderOnEveryPhysicalReplica() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let firstID = UUID()
+        let secondID = UUID()
+        let thirdID = UUID()
+        let firstTimestamp = Date(timeIntervalSince1970: 1_000)
+        let secondTimestamp = Date(timeIntervalSince1970: 2_000)
+        let thirdTimestamp = Date(timeIntervalSince1970: 3_000)
+
+        context.insert(TaskItem(
+            id: firstID,
+            title: "First",
+            priority: .medium,
+            createdAt: firstTimestamp,
+            updatedAt: firstTimestamp,
+            manualOrder: 1
+        ))
+        context.insert(TaskItem(
+            id: firstID,
+            title: "First",
+            priority: .medium,
+            createdAt: firstTimestamp,
+            updatedAt: firstTimestamp,
+            manualOrder: 1
+        ))
+        context.insert(TaskItem(
+            id: secondID,
+            title: "Second",
+            priority: .medium,
+            createdAt: secondTimestamp,
+            updatedAt: secondTimestamp,
+            manualOrder: 1
+        ))
+        context.insert(TaskItem(
+            id: thirdID,
+            title: "Third",
+            priority: .medium,
+            createdAt: thirdTimestamp,
+            updatedAt: thirdTimestamp,
+            manualOrder: 1
+        ))
+        try context.save()
+        let store = TaskStore(container: container)
+
+        XCTAssertTrue(store.reorder(taskID: firstID, relativeTo: secondID))
+
+        let verificationContext = ModelContext(container)
+        let replicas = try verificationContext.fetch(FetchDescriptor<TaskItem>())
+        let firstOrders = Set(replicas.filter { $0.id == firstID }.map(\.manualOrder))
+        XCTAssertEqual(firstOrders.count, 1)
+        XCTAssertEqual(Set(replicas.compactMap(\.manualOrder)).count, 3)
+    }
+
+}
