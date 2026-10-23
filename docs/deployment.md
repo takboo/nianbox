@@ -22,6 +22,8 @@ For a trial deployment, `.env.example` selects `ghcr.io/takboo/nianbox:main`. Fo
 NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:<published-index-digest>
 ```
 
+The first verified public image is commit `b60a7dd36fc05bcd85f2ef63b0c29a83f2cf8a84`, index digest `sha256:325d335d39d5969af3d773d2309a51cb0e57f8919ee716911a0973c04d75ea50`. Its AMD64/ARM64 layers each require approximately 53 MB on a cold pull. See [verification](verification.md) for the exact artifact and test evidence; `:main` will advance with subsequent successful publications.
+
 Back up first, record the current digest, change `NIANBOX_IMAGE`, then run `docker compose pull && docker compose up -d --no-build`. Check health and authenticated data before accepting the upgrade. To roll back the binary, restore the previous digest; preserve the data volume and check schema compatibility before downgrading. Never use `down -v` for upgrades. A public image contains application code and locked dependencies; user tasks and tokens are supplied only at runtime.
 
 To build local changes instead:

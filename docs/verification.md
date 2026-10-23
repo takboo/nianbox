@@ -47,7 +47,7 @@ Guest Accessibility/event access was already available. Screenshot capture produ
 
 The user explicitly authorized a public `takboo/nianbox` repository and public GHCR server images. Distribution configuration now separates pull-only deployment (`compose.yaml`) from optional local builds (`compose.build.yaml`). CI checks native Linux AMD64/ARM64 and macOS before publishing a multi-platform image on `main`; other branches and pull requests cannot publish. Docker/Actions updates are tracked by Dependabot.
 
-Local verification before the first push:
+Local checks during distribution preparation:
 
 - **19 server tests, 60 macOS unit tests**, deterministic macOS project verification, `git diff --check` and Actionlint 1.7.12 passed. No desktop automation was run.
 - Official Python 3.12.15 slim/trixie is pinned to its multi-platform digest. Production input allowlisting, wheel-only/no-bytecode installation and an explicit UID/GID replace the earlier loose context and default group.
@@ -57,7 +57,19 @@ Local verification before the first push:
 
 The public source was pushed as `01f1ec8` to [takboo/nianbox](https://github.com/takboo/nianbox). SSH port 22 was unavailable; GitHub's SSH-over-443 route succeeded with existing strict host-key verification. The first ARM64 CI run failed during pytest collection. The same `ModuleNotFoundError: nianbox` was reproduced locally with the `pytest` entry point (the previously used `python -m pytest` passed). An explicit project-root pytest path fixes collection; the exact CLI invocation now passes all 19 tests. Docker dependency updates are constrained to Python 3.12 patch/digest changes; interpreter upgrades need deliberate review.
 
-The `482106e` workflow passed and published a public multi-platform package. All native Linux AMD64/ARM64 and macOS checks also passed for `6ec3d32`, but its publishing job stalled in QEMU preparation and reported `Failed to restore: Egress is over the account limit.` This was the GitHub Actions image cache, not application data or GHCR. The stalled run was cancelled. Publication now disables QEMU/build caches, installs only the ARM64 emulator and has bounded timeouts. CI also cancels superseded runs and avoids duplicate Dependabot push/PR runs. The final publication and anonymous pull still need verification. The intended always-on deployment and real phone workflow remain separate acceptance gates.
+The `482106e` workflow passed and published a public multi-platform package. All native Linux AMD64/ARM64 and macOS checks also passed for `6ec3d32`, but its publishing job stalled in QEMU preparation and reported `Failed to restore: Egress is over the account limit.` This was the GitHub Actions image cache, not application data or GHCR. The stalled run was cancelled. Publication now disables QEMU/build caches, installs only the ARM64 emulator and has bounded timeouts. CI also cancels superseded runs and avoids duplicate Dependabot push/PR runs.
+
+Final publication **passed** for `b60a7dd36fc05bcd85f2ef63b0c29a83f2cf8a84`: [GitHub CI run](https://github.com/takboo/nianbox/actions/runs/39918693563). Both native Linux server jobs, macOS checks and publishing succeeded. The [GHCR package](https://github.com/takboo/nianbox/pkgs/container/nianbox) is public. A pull with a fresh Docker configuration containing no registry credentials succeeded; the downloaded image's revision label matched the commit. The actual downloaded ARM64 image then passed the restricted-container checks again (MCP/REST, restart, idempotency, backup/export, permissions and license).
+
+Verified multi-platform deployment reference:
+
+```dotenv
+NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:325d335d39d5969af3d773d2309a51cb0e57f8919ee716911a0973c04d75ea50
+```
+
+The index contains Linux AMD64 and ARM64 plus SLSA provenance and SPDX SBOM attestations. Compressed image-layer bytes total **52,820,235 (AMD64)** and **53,049,978 (ARM64)**, about 53 MB per architecture before protocol overhead. Layers already cached on a host reduce the actual download. The downloaded ARM64 image is **174,332,089 bytes** uncompressed; measured process RSS after its checks was **68,676 kB (about 67 MiB)**. The separate local AMD64 image passed the same check under Docker emulation (150,334,810 bytes); its emulated RSS is not a native Linux memory benchmark.
+
+Raw local evidence: `.local/ghcr-anonymous-pull.log`, `.local/ghcr-container-check.json`, `.local/ghcr-distribution.json`, `.local/github-final-jobs.json`. No user token, database or private configuration was published. The intended always-on deployment and real phone workflow remain separate acceptance gates.
 
 ## Remaining live acceptance
 
