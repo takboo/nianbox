@@ -70,3 +70,20 @@ If guest permissions are missing, authorize the intended capability in the guest
 ## Remaining boundaries
 
 These results cover one virtual display and synthetic OS input. Physical keyboard/mouse behavior, multiple physical displays/Spaces, mixed DPI, launch-at-login, human UX acceptance, actual phone conversations and deployment to an always-on HTTPS/private-network server remain separate acceptance gates. A host-powered VM also cannot prove service availability with the physical host powered off.
+
+## v0.2.0 release follow-up
+
+The headless test VM was reused on 2026-10-23. Clean product source `148e6093a5667f68f10929146dcea5565eca336b`, its Universal DMG and the committed probe/controller were transferred into `~/nianbox-testing/v020-148e609`. The app was copied from the mounted DMG into the previously absent guest `/Applications/NianBox.app`; its ad-hoc signature was verified before launch. No host application was installed or terminated.
+
+All six checks passed: capture/status/menu/history, native drag order, long-title wrap, search, default shortcut/corner/disk reopen, and the new configurable-shortcut case. The last case exercises real modifier/key events, a second guest process reserving a conflicting combination, cancellation, focus-loss recovery, persistence across relaunch, disable and default restoration. Earlier conflict failure and preliminary packaging screenshots remain separate evidence. The VM screenshot confirms the final 3D rounded-plate icon, installation background, relative sizes, arrow and bilingual instructions.
+
+| Input | SHA-256 |
+| --- | --- |
+| Candidate executable | `b09012b24a018e73c87ff836b7513b38852e91150bca5c65b3a6f2a235e7b066` |
+| Candidate Universal DMG | `4b6e1559444cdaa0510951aecb576e89201901381f380e4df3ba3cd6a91c9c7d` |
+| Probe source | `42134be708e4be3687f1f4d9c74477122b9730aa332106d287fb958e5271d9e5` |
+| Controller | `043db18383abb2e14e84d1e0d0815edfe5e21800b2d3b5cbca9fbca007029ce1` |
+
+Host evidence: `.local/v020-vm-final-evidence/`; guest originals: `~/nianbox-testing/v020-148e609/native-final/`. The report records `sourceDirty: false`. The new `--only CHECK_NAME` option allows targeted driver diagnostics; the final run used no filter. Hermes/phone and network deployment were not rerun by this UI-only follow-up. The SSH-delivered local candidate has no browser-download quarantine, so this installation does not establish a successful Gatekeeper first launch for the published download.
+
+The actual Actions-built DMG was then tested separately under `~/nianbox-testing/v020-github`, with the same clean `148e609` source/probe/controller. All six native checks passed again. Published DMG SHA-256: `6e4f4cc0119852fec134c26a1d59e0c66fab97dcb6a0ead7ec1aa41c7c1c5889`; its executable SHA-256: `39861268f8032a2f4a92e296a0cfb835c292223281c634670a9f61be10b2d8d4`. An anonymous public download was byte-identical to the tested asset. Host raw results: `.local/v020-vm-github-evidence/`. After retrieval, all three known DMG mounts were detached, the temporary candidate Applications copy was removed after verifying its executable identity, and the test VM was returned to stopped. Guest stores and evidence were retained, and no sibling repository source was written.
