@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -150,7 +151,7 @@ class Store:
         # SQLite online backup includes committed WAL data and produces a standalone database.
         target = Path(destination)
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists():
-            raise ValueError('Backup destination already exists')
+        fd = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        os.close(fd)
         with self.connect() as db, sqlite3.connect(destination) as backup:
             db.backup(backup)

@@ -1,0 +1,7 @@
+# Merge into the active Hermes profile's config.yaml; keep other server entries.
+mcp_servers:
+  nianbox:
+    url: "https://nianbox.example.ts.net/mcp/"
+    headers:
+      Authorization: "Bearer ${NIANBOX_API_TOKEN}"
+    strict_redirect_headers: true

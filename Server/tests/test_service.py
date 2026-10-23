@@ -112,7 +112,7 @@ def test_backup_and_restore(tmp_path):
     assert restored.export()['tasks'] == [result['task']]
     assert restored.changes(0, 10)['serverId'] == store.changes(0, 10)['serverId']
     assert restored.mutate(Mutation.model_validate(mutation(key=uuid4())))
-    with pytest.raises(ValueError):
+    with pytest.raises(FileExistsError):
         store.backup(backup)
 
 
@@ -182,3 +182,16 @@ async def test_real_streamable_http_mcp(tmp_path):
         server.should_exit = True
         await runner
         sock.close()
+
+
+def test_naive_due_filter_is_rejected(client):
+    assert client.get('/v1/tasks?due_before=2026-10-24T10:00:00').status_code == 422
+
+
+def test_completed_history_survives_backup_and_restart(tmp_path):
+    store = Store(str(tmp_path / 'history.sqlite'))
+    created = store.mutate(Mutation.model_validate(mutation()))['task']
+    done = store.mutate(Mutation.model_validate(mutation(created['id'], 'update', created['version'], {'status': 'done'})))['task']
+    store.backup(str(tmp_path / 'history-backup.sqlite'))
+    restored = Store(str(tmp_path / 'history-backup.sqlite'))
+    assert restored.list(status='done') == [done]

@@ -10,6 +10,10 @@ final class NianBoxUITests: XCTestCase {
         app.launch()
     }
 
+    override func tearDownWithError() throws {
+        app.terminate()
+    }
+
     func testCreateAdvanceCompleteAndOpenContextMenu() throws {
         let addButton = app.buttons["add-task-button"]
         XCTAssertTrue(addButton.waitForExistence(timeout: 3))
@@ -17,6 +21,7 @@ final class NianBoxUITests: XCTestCase {
 
         let titleField = app.textFields["new-task-title"]
         XCTAssertTrue(titleField.waitForExistence(timeout: 2))
+        titleField.click()
         titleField.typeText("Ship prototype")
         titleField.typeKey(.return, modifierFlags: [])
 
@@ -36,7 +41,9 @@ final class NianBoxUITests: XCTestCase {
         let doneSection = app.staticTexts["task-section-done"]
         XCTAssertTrue(doneSection.waitForExistence(timeout: 2))
 
-        let actions = app.menuButtons["Edit task"]
+        let actions = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "task-actions-")
+        ).firstMatch
         XCTAssertTrue(actions.waitForExistence(timeout: 2))
         actions.click()
 
@@ -58,12 +65,11 @@ final class NianBoxUITests: XCTestCase {
         let longTitle = "A long task title that should wrap onto multiple lines instead of being cut off"
         let titleField = app.textFields["new-task-title"]
         XCTAssertTrue(titleField.waitForExistence(timeout: 2))
+        titleField.click()
         titleField.typeText(longTitle)
         titleField.typeKey(.return, modifierFlags: [])
 
-        let title = app.staticTexts.matching(
-            NSPredicate(format: "value BEGINSWITH %@", "A long task title")
-        ).firstMatch
+        let title = app.staticTexts[longTitle]
         XCTAssertTrue(title.waitForExistence(timeout: 2))
         XCTAssertGreaterThan(title.frame.height, 20)
     }
@@ -99,6 +105,7 @@ final class NianBoxUITests: XCTestCase {
         XCTAssertTrue(searchButton.waitForExistence(timeout: 2))
         searchButton.click()
         XCTAssertTrue(searchField.waitForExistence(timeout: 2))
+        searchField.click()
         searchField.typeText("FLIGHTS")
 
         XCTAssertTrue(app.staticTexts["Book flights"].waitForExistence(timeout: 2))
@@ -108,6 +115,7 @@ final class NianBoxUITests: XCTestCase {
         clearSearch.click()
         XCTAssertTrue(app.staticTexts["Book flights"].waitForExistence(timeout: 2))
 
+        searchField.click()
         searchField.typeText("trains")
         XCTAssertTrue(app.staticTexts["No matches"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["Book flights"].exists)
@@ -117,6 +125,39 @@ final class NianBoxUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Book flights"].waitForExistence(timeout: 2))
     }
 
+    @MainActor
+    func testHermesTaskAppearsAndMacCompletionReachesServer() async throws {
+        let fixtureURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent(".local/e2e.json")
+        guard FileManager.default.fileExists(atPath: fixtureURL.path) else {
+            throw XCTSkip("Run Scripts/hermes_smoke.py against an isolated test server first")
+        }
+        let fixture = try JSONSerialization.jsonObject(with: Data(contentsOf: fixtureURL)) as! [String: Any]
+        let task = fixture["task"] as! [String: Any]
+        let id = UUID(uuidString: task["id"] as! String)!
+        app.terminate()
+        app.launchEnvironment["NIANBOX_SYNC_FIXTURE"] = fixtureURL.path
+        app.launch()
+        let title = app.staticTexts[task["title"] as! String]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        let complete = app.buttons["complete-task-\(id.uuidString)"]
+        XCTAssertTrue(complete.waitForExistence(timeout: 3))
+        complete.click()
+        let due = Date().addingTimeInterval(10)
+        var done = false
+        while Date() < due {
+            var request = URLRequest(url: URL(string: fixture["url"] as! String)!.appendingPathComponent("v1/tasks/\(id.uuidString)"))
+            request.setValue("Bearer \(fixture["token"] as! String)", forHTTPHeaderField: "Authorization")
+            let (data, response) = try await URLSession.shared.data(for: request)
+            XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+            let saved = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+            if saved["status"] as? String == "done" { done = true; break }
+            try await Task.sleep(for: .milliseconds(200))
+        }
+        XCTAssertTrue(done)
+        XCTAssertTrue(title.exists)
+    }
+
     private func addTask(named title: String) {
         let addButton = app.buttons["add-task-button"]
         XCTAssertTrue(addButton.waitForExistence(timeout: 2))
@@ -124,7 +165,9 @@ final class NianBoxUITests: XCTestCase {
 
         let titleField = app.textFields["new-task-title"]
         XCTAssertTrue(titleField.waitForExistence(timeout: 2))
+        titleField.click()
         titleField.typeText(title)
-        titleField.typeKey(.return, modifierFlags: [])
+        app.buttons["save-task"].click()
+        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 3))
     }
 }

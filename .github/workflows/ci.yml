@@ -1,0 +1,25 @@
+name: NianBox checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.13"
+      - run: uv sync --project Server --locked --python 3.12
+      - run: cd Server && uv run pytest -q
+      - run: docker build -t nianbox-server-test Server
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec ruby Scripts/verify_project_generation.rb
+      - run: xcodebuild test -project NianBox.xcodeproj -scheme NianBox -destination 'platform=macOS' -derivedDataPath DerivedData -only-testing:NianBoxTests CODE_SIGNING_ALLOWED=NO

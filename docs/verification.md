@@ -1,11 +1,57 @@
-# Verification record
+# Verification and remaining acceptance
 
-Source baseline: Peekaboo `54c23bf`. Workspace was empty with no local commits or data when implementation began on 2026-10-23.
+Date: 2026-10-23. Baseline: Peekaboo `54c23bf`. The workspace was empty (no local commits, files or data) when implementation began. Development is local on `codex/nianbox-macos`; nothing has been pushed or published.
 
-Phase 1: 17 backend tests pass, including actual SDK Streamable HTTP transport, REST/MCP shared persistence, fail-closed auth, input validation, restart receipts, CAS concurrency, pagination, tombstones and SQLite online backup/restore. Deterministic Xcode generation passes and verifies exactly three macOS targets and network-client-only sandbox entitlements. macOS build and 46 unit tests pass (Xcode 26.2, unsigned test build).
+## Phase 1 — macOS-only fork and standalone server
 
-No remote push, release, existing data migration, personal Hermes configuration change or live server deployment has occurred. Physical phone interaction, Mac power-off testing, external TLS/private-network reachability and human UX acceptance require the intended deployment/devices.
+- Local commit: `73d8e09`.
+- Removed the mobile source/tests/targets/scheme, CloudKit/APNs capabilities and bootstrap/observers, upstream signing/team/container identifiers, and daily completed-task cleanup. LICENSE is unchanged.
+- FastAPI + SQLite REST/MCP share one transactional store; Compose uses a persistent volume and loopback binding.
+- Initial checks: 17 server tests and 46 retained macOS unit tests passed.
+- Docker 29.8.2 built and ran the service. A diagnostic task was read back unchanged after recreating the container with its named volume.
 
-Phase 2: 58 macOS unit tests pass, including 12 SyncEngine fault/recovery cases. The production SwiftData model + durable outbox + SyncEngine + URLSession client passed a standalone integration run against the real Docker service. A task created using the installed Hermes MCP client was imported into a disk-backed SwiftData store with notes, priority and due date; an offline Mac capture survived store reopen, uploaded to the server, and a Mac completion round trip remained present after another reopen. The standalone harness uses the same production sources as the app; visible UI acceptance is separate.
+## Phase 2 — offline macOS synchronization
 
-Container verification: Compose built and ran on Docker 29.8.2, loopback port 18988, isolated project `nianbox-verification`. A saved task was read back byte-for-byte after container recreation using the same named volume.
+- Local commit: `392e52d`.
+- SwiftData task changes and outbox entries commit together. Prepared requests, IDs and patches survive reopen; server pages and cursors also commit together. Deletion wins, with rejected local patches retained for export. Notes/due dates use the same server model.
+- Phase 2 checks: 58 macOS unit tests passed (12 sync cases). Final stabilization expands this to **60 passing unit tests**.
+- `Scripts/verify_sync.sh` compiles production models, TaskStore, SyncEngine and URLSession sources into a noninteractive integration executable. Against the actual Docker server, it verified disk-backed import of a Hermes-created task (notes, high priority, due date), offline capture surviving reopen and upload, Mac completion reaching the server, and completed history surviving another local reopen.
+- A dedicated NianBox store path is used. No upstream/user store was opened or migrated.
+
+## Phase 3 — Hermes and stabilization
+
+- Installed Hermes source checked: `v0.22.2+canary.20261019T071120Z-385-g0b10b9f815`. Its native client imports Streamable HTTP and resolves `${ENV_VAR}` in headers; no compatibility adapter is needed.
+- `Scripts/hermes_smoke.py`, run with the installed Hermes Python environment and an isolated HERMES_HOME, connected its real `MCPServerTask` to Docker. All six tools were discovered and exercised, including idempotent create retry, read, update, completion and tombstone deletion. REST read the same stored task. No LLM/phone messages or private live Hermes configuration were used or changed.
+- Final backend suite: **19 passing tests**. Covers auth on REST/MCP, host/origin/body boundaries, validation, CRUD/filtering, idempotency after restart, concurrent CAS, incremental pagination, offline create/delete, permanent tombstones, retained completed history, and backup/restore.
+- Actual container online-backup and JSON-export commands ran successfully. The backup was restored into a **fresh second Docker volume**; server identity and all 7 task/tombstone records at that snapshot matched the export.
+- Deterministic generator verification passes: exactly NianBox, NianBoxTests and NianBoxUITests; all macOS; no paid capabilities. CI runs server checks and macOS unit tests only. Interactive UI tests are manual.
+- Release builds with free ad-hoc signing; the Release configuration disables injected debug entitlements. Signature/entitlements and linked frameworks are inspected separately from tests; no Apple team, CloudKit, APNs or remote publication is involved.
+
+## Interactive UI evidence and limitations
+
+The signed UI runner successfully displayed the task created by the installed Hermes client, clicked its completion button, and verified `done` through REST. A subsequent full UI run reported **4 passes and 1 drag-order failure**: capture/status/menu editing, long title wrapping, search, and Hermes→panel→server completion passed.
+
+Later single-case attempts also failed before tasks were saved. The user reported simultaneous mouse use and permission dialogs. These tests emit real desktop input; focus and event interference make those failures inconclusive. Interactive runs were stopped at the user's steering. The original panel layout is retained; a speculative drag-layout change was reverted. Stable task-store ordering has automated unit coverage, but physical drag acceptance remains pending. Unit-test hosts now skip global shortcuts, corner monitoring, welcome windows and server sync. Background Keychain reads disallow authentication UI; connection issues are shown in settings instead of triggering prompts.
+
+No claim is made that the full UI suite or human UX acceptance has passed. Prior failure artifacts remain under `.local/UITestDerivedData/Logs/Test`; they are not distribution artifacts.
+
+## Remaining live acceptance
+
+1. Deploy Compose on the intended always-on host and verify the real HTTPS/Tailscale URL and ACLs from the Hermes host and Mac.
+2. Use the actual phone Hermes channel for natural-language creation, querying, modification and completion. Verify while the Mac is powered off, then start NianBox and observe the task/history.
+3. In a desktop session without competing input, complete drag/drop, global shortcut, corner reveal, offline network recovery and launch-at-login acceptance. Approve any intended macOS automation permissions manually.
+4. Notarization/distribution, old Peekaboo data migration and production cutover are outside the completed local verification. No install, release or remote push has been performed.
+
+## Reproduce without operating the desktop
+
+```sh
+cd Server && uv sync --locked && uv run pytest -q
+# From repository root:
+bundle exec ruby Scripts/verify_project_generation.rb
+xcodebuild test -project NianBox.xcodeproj -scheme NianBox \
+  -destination 'platform=macOS' -only-testing:NianBoxTests CODE_SIGNING_ALLOWED=NO
+# After producing a fresh isolated fixture with the Hermes smoke script:
+Scripts/verify_sync.sh .local/e2e.json
+```
+
+See [Hermes](hermes.md), [deployment/restore](deployment.md) and [sync contract](sync.md) for setup and recovery rules. Test fixtures contain only random test credentials and generated diagnostic tasks, are ignored by Git, and should be handled as private files.

@@ -39,7 +39,16 @@ final class AppCoordinator {
         }
 
         let store = TaskStore(container: container)
-        let syncEngine = SyncEngine(store: store)
+        let syncEngine: SyncEngine
+        if isUITesting, let path = environment["NIANBOX_SYNC_FIXTURE"],
+           let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+           let fixture = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let url = fixture["url"] as? String, let token = fixture["token"] as? String,
+           let client = try? ServerClient(url: url, token: token) {
+            syncEngine = SyncEngine(store: store, transport: client)
+        } else {
+            syncEngine = SyncEngine(store: store)
+        }
         let uiState = PanelUIState()
         let loginItemService = LoginItemService()
         let settingsWindowController = SettingsWindowController(
@@ -70,10 +79,12 @@ final class AppCoordinator {
 
         if isUITesting {
             hoverMonitor.keepVisibleForUITesting()
+            if ProcessInfo.processInfo.environment["NIANBOX_SYNC_FIXTURE"] != nil { syncEngine.start() }
             return
         }
 
-        if !isRunningTests { syncEngine.start() }
+        guard !isRunningTests else { return }
+        syncEngine.start()
         newTaskHotKey.register()
         hoverMonitor.start()
         if !settings.hasShownWelcome {

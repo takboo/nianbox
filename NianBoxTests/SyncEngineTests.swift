@@ -233,6 +233,30 @@ final class SyncEngineTests: XCTestCase {
         XCTAssertEqual(Set(store.tasks.map(\.title)), ["Local", "Concurrent remote"])
     }
 
+    func testExistingLocalOnlyCaptureIsQueuedOnFirstConnection() async throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        context.insert(TaskItem(title: "Before outbox existed"))
+        try context.save()
+        let store = TaskStore(container: container)
+        XCTAssertTrue(try store.pendingMutations().isEmpty)
+        let server = MemoryServer()
+        await SyncEngine(store: store, transport: server).syncOnce()
+        XCTAssertTrue(server.tasks.values.contains { $0.title == "Before outbox existed" })
+        XCTAssertTrue(try store.pendingMutations().isEmpty)
+    }
+
+    func testLocalReorderDoesNotQueueServerFieldWrites() async throws {
+        let store = try makeTestStore()
+        let first = try XCTUnwrap(store.create(title: "First"))
+        let second = try XCTUnwrap(store.create(title: "Second"))
+        let server = MemoryServer()
+        let engine = SyncEngine(store: store, transport: server)
+        await engine.syncOnce()
+        XCTAssertTrue(store.reorder(taskID: first.id, relativeTo: second.id))
+        XCTAssertTrue(try store.pendingMutations().isEmpty)
+    }
+
     func testClientRejectsUnsafeURLs() {
         for url in ["http://example.com", "https://user:secret@example.com", "https://example.com/?token=x", "https://example.com/mcp/", "file:///tmp/x"] {
             XCTAssertThrowsError(try ServerClient.validatedURL(url))

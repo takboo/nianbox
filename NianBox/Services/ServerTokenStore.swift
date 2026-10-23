@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import LocalAuthentication
 
 struct ServerTokenStore {
     private let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
@@ -7,6 +8,9 @@ struct ServerTokenStore {
     func load() throws -> String? {
         var request = query
         request[kSecReturnData as String] = true
+        let authentication = LAContext()
+        authentication.interactionNotAllowed = true
+        request[kSecUseAuthenticationContext as String] = authentication
         var result: CFTypeRef?
         let status = SecItemCopyMatching(request as CFDictionary, &result)
         if status == errSecItemNotFound { return nil }

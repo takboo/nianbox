@@ -13,3 +13,4 @@ __pycache__/
 *.store*
 .local/
 *.xcresult/
+restore.override.yaml

@@ -75,7 +75,7 @@ def create_app(db_path: str | None = None, token: str | None = None):
         if not 1 <= limit <= 500 or offset < 0:
             raise ValueError('invalid_pagination')
         if due_before and due_before.tzinfo is None:
-            raise ValueError('due_before_requires_timezone')
+            raise StoreError('due_before_requires_timezone', status=422)
         due = due_before.astimezone(timezone.utc).isoformat() if due_before else None
         return {'tasks': store.list(status, due, limit, offset)}
 

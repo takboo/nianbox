@@ -80,6 +80,7 @@ app.build_configurations.each do |config|
   settings['CODE_SIGN_ENTITLEMENTS'] = 'NianBox/NianBox.entitlements'
   settings['ENABLE_APP_SANDBOX'] = 'YES'
   settings['ENABLE_HARDENED_RUNTIME'] = 'YES'
+  settings['CODE_SIGN_INJECT_BASE_ENTITLEMENTS'] = 'NO' if config.name == 'Release'
   settings['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
   settings['ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME'] = 'AccentColor'
   settings['MARKETING_VERSION'] = '0.1.0'

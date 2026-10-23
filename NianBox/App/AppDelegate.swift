@@ -5,20 +5,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppCoordinator.shared.start()
     }
 
-    func application(
-        _ application: NSApplication,
-        didFailToRegisterForRemoteNotificationsWithError error: Error
-    ) {
-        NSLog("Remote notification registration failed: %@", error.localizedDescription)
-    }
-
-    func application(
-        _ application: NSApplication,
-        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {
-        NSLog("Remote notification registration succeeded")
-    }
-
     func applicationWillTerminate(_ notification: Notification) {
         AppCoordinator.shared.stop()
     }

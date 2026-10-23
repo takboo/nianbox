@@ -49,6 +49,7 @@ final class SyncEngine: ObservableObject {
         stop()
         transport = nil
         status = "Local only · changes retained"
+        store.onLocalChange = { [weak self] in self?.updateCounts() }
     }
 
     func start() {
@@ -124,6 +125,7 @@ final class SyncEngine: ObservableObject {
             try store.bindServer(transport)
             // Check database identity and import remote tombstones before any upload.
             try await pull(transport)
+            var conflicts: [UUID: Int] = [:]
             for _ in 0..<100 {
                 try Task.checkCancellation()
                 guard let pending = try store.pendingMutations().first else { break }
@@ -133,6 +135,10 @@ final class SyncEngine: ObservableObject {
                     try store.accept(task, for: pending)
                 } catch let rejection as ServerRejection {
                     if rejection.error == "version_conflict", let current = rejection.current {
+                        conflicts[pending.taskId, default: 0] += 1
+                        guard conflicts[pending.taskId, default: 0] <= 3 else {
+                            throw SyncFailure.message("Concurrent edits are busy; retrying later. Local changes retained.")
+                        }
                         try store.rebase(pending, onto: current)
                     } else if rejection.error == "deleted", let current = rejection.current {
                         try store.rebase(pending, onto: current)
