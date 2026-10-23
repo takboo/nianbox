@@ -16,6 +16,7 @@ parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--fixture', type=Path)
 parser.add_argument('--shortcut-holder', type=Path)
+parser.add_argument('--only', action='append', help='Run only the named check (repeatable)')
 args = parser.parse_args()
 model = subprocess.check_output(['/usr/sbin/sysctl', '-n', 'hw.model'], text=True).strip()
 if not model.startswith('VirtualMac'):
@@ -122,6 +123,8 @@ def task_id(title):
 
 
 def check(name, function):
+    if args.only and name not in args.only:
+        return
     started = time.monotonic()
     try:
         function()
@@ -251,7 +254,7 @@ def hermes():
 
 def configurable_shortcut():
     launch(normal=True)
-    probe('key', 'shortcut')
+    probe('move', '1439', '1')
     probe('click', 'id=settings-button')
     control = 'id=quick-capture-shortcut'
     wait(control)
@@ -265,7 +268,7 @@ def configurable_shortcut():
             assert holder.stdout.readline().strip() == 'READY'
             probe('click', control)
             probe('key', 'captureL')
-            assert any('unavailable' in str(n) for n in nodes()), 'Conflict was not reported'
+            assert any('unavailable' in str(n) or 'intercepted' in str(n) for n in nodes()), 'Conflict was not reported'
             wait('text=⌃⌥K')
             capture('shortcut-conflict-retains-setting')
         finally:
@@ -284,6 +287,13 @@ def configurable_shortcut():
     probe('key', 'captureK')
     wait('id=new-task-title')
     wait('text=' + title)
+    probe('click', 'id=settings-button')
+    wait(control)
+    # Leaving a recording window must restore the saved global binding too.
+    probe('click', control)
+    subprocess.run(['/usr/bin/open', '-a', 'Finder'], check=True)
+    probe('key', 'captureK')
+    wait('id=new-task-title')
     probe('click', 'id=settings-button')
     wait(control)
     probe('click', control); probe('key', 'delete')

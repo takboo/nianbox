@@ -1,12 +1,14 @@
 import AppKit
 import Foundation
 let output = CommandLine.arguments[1]
-let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1400, pixelsHigh: 920,
+let scale = Int(CommandLine.arguments[2])!
+precondition([1, 2].contains(scale))
+let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 700 * scale, pixelsHigh: 460 * scale,
     bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
     colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
-let transform = NSAffineTransform(); transform.scale(by: 2); transform.concat()
+let transform = NSAffineTransform(); transform.scale(by: CGFloat(scale)); transform.concat()
 NSColor(calibratedRed: 0.965, green: 0.949, blue: 0.922, alpha: 1).setFill()
 NSRect(x: 0, y: 0, width: 700, height: 460).fill()
 let ink = NSColor(calibratedRed: 0.19, green: 0.24, blue: 0.22, alpha: 1)
@@ -24,4 +26,5 @@ arrow.move(to: NSPoint(x: 375, y: 232)); arrow.line(to: NSPoint(x: 390, y: 217))
 arrow.lineWidth = 3; arrow.lineCapStyle = .round; arrow.lineJoinStyle = .round
 NSColor(calibratedRed: 0.70, green: 0.43, blue: 0.34, alpha: 1).setStroke(); arrow.stroke()
 NSGraphicsContext.restoreGraphicsState()
+bitmap.size = NSSize(width: 700, height: 460)
 try bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: output))

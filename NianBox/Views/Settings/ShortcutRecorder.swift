@@ -35,11 +35,24 @@ struct ShortcutRecorder: NSViewRepresentable {
         var onRecording: ((Bool) -> Void)?
         var onError: ((String) -> Void)?
         private(set) var recording = false
+        private var sawModifiers = false
         override var acceptsFirstResponder: Bool { true }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didResignKeyNotification, object: nil)
+            if let window {
+                NotificationCenter.default.addObserver(self, selector: #selector(windowLostFocus),
+                    name: NSWindow.didResignKeyNotification, object: window)
+            } else { finishRecording() }
+        }
+
+        @objc private func windowLostFocus(_ notification: Notification) { finishRecording() }
 
         @objc func beginRecording() {
             if recording { finishRecording(); return }
             recording = true
+            sawModifiers = false
             onRecording?(true)
             title = "Press shortcut…"
             window?.makeFirstResponder(self)
@@ -53,6 +66,17 @@ struct ShortcutRecorder: NSViewRepresentable {
         }
 
         override func resignFirstResponder() -> Bool { finishRecording(); return super.resignFirstResponder() }
+        override func flagsChanged(with event: NSEvent) {
+            guard recording else { super.flagsChanged(with: event); return }
+            if !event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty {
+                sawModifiers = true
+            } else if sawModifiers {
+                // An OS/global binding can consume the character before AppKit sees it.
+                // Detect the completed modifier gesture without adding an event tap or permission prompt.
+                onError?("macOS or another app intercepted this combination. Try another shortcut.")
+                finishRecording()
+            }
+        }
         override func performKeyEquivalent(with event: NSEvent) -> Bool {
             guard recording else { return super.performKeyEquivalent(with: event) }
             keyDown(with: event)

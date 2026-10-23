@@ -57,11 +57,23 @@ struct VMUIProbe {
         settle()
     }
     static func key(_ code: CGKeyCode, flags: CGEventFlags = []) {
+        let modifiers: [(CGEventFlags, CGKeyCode)] = [(.maskControl, 59), (.maskAlternate, 58), (.maskShift, 56), (.maskCommand, 55)]
+        var held: CGEventFlags = []
+        for (flag, keyCode) in modifiers where flags.contains(flag) {
+            held.insert(flag)
+            let event = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true)!
+            event.flags = held; event.post(tap: .cghidEventTap); settle(0.04)
+        }
         for down in [true, false] {
             let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down)!
-            event.flags = down ? flags : []
+            event.flags = flags
             event.post(tap: .cghidEventTap)
             settle(0.05)
+        }
+        for (flag, keyCode) in modifiers.reversed() where flags.contains(flag) {
+            held.remove(flag)
+            let event = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false)!
+            event.flags = held; event.post(tap: .cghidEventTap); settle(0.04)
         }
         settle()
     }
