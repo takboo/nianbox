@@ -151,7 +151,9 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertTrue(store.delete(try XCTUnwrap(store.tasks.first)))
         verificationContext = ModelContext(container)
         replicas = try verificationContext.fetch(FetchDescriptor<TaskItem>())
-        XCTAssertTrue(replicas.isEmpty)
+        XCTAssertEqual(replicas.count, 2)
+        XCTAssertTrue(replicas.allSatisfy { $0.deletedAt != nil })
+        XCTAssertTrue(store.tasks.isEmpty)
     }
 
     @MainActor

@@ -32,6 +32,7 @@ struct TaskRowView: View {
                         .onExitCommand(perform: cancelRename)
                         .accessibilityIdentifier("edit-task-title-\(task.id.uuidString)")
                 } else {
+                    VStack(alignment: .leading, spacing: 3) {
                     Text(task.title)
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
@@ -40,6 +41,15 @@ struct TaskRowView: View {
                         .strikethrough(task.status == .done, color: .secondary)
                         .foregroundStyle(task.status == .done ? .secondary : .primary)
                         .accessibilityLabel(task.title)
+                        if let notes = task.notes, !notes.isEmpty {
+                            Text(notes).font(.caption2).foregroundStyle(.secondary).lineLimit(2)
+                        }
+                        if let dueAt = task.dueAt {
+                            Text(dueAt, format: .dateTime.month().day().hour().minute())
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+
                 }
             }
             .font(.system(size: 13, weight: task.status == .inProgress ? .medium : .regular, design: .rounded))

@@ -8,11 +8,13 @@ final class SettingsWindowController: NSWindowController {
     init(
         settings: AppSettings,
         loginItemService: LoginItemService,
-        store: TaskStore
+        store: TaskStore,
+        syncEngine: SyncEngine
     ) {
         let rootView = SettingsView(
             settings: settings,
             loginItemService: loginItemService,
+            syncEngine: syncEngine,
             store: store
         )
         let hostingController = NSHostingController(rootView: rootView)

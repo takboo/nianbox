@@ -23,5 +23,5 @@ Dir.mktmpdir('nianbox-project-check') do |directory|
 end
 output, status = Open3.capture2('plutil', '-convert', 'json', '-o', '-', File.join(root, 'NianBox/NianBox.entitlements'))
 abort 'Invalid entitlements' unless status.success?
-abort 'Unexpected entitlement' unless JSON.parse(output) == {'com.apple.security.app-sandbox'=>true,'com.apple.security.network.client'=>true}
+abort 'Unexpected entitlement' unless JSON.parse(output) == {'com.apple.security.app-sandbox'=>true,'com.apple.security.network.client'=>true,'com.apple.security.files.user-selected.read-write'=>true}
 puts 'PASS: deterministic macOS-only project, current sources, no paid capabilities'

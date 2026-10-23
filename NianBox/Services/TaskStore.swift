@@ -33,6 +33,9 @@ private struct TaskReplicaSnapshot: Equatable {
     let updatedAt: Date
     let completedAt: Date?
     let manualOrder: Int64?
+    let fields: TaskFields
+    let version: Int64
+    let deletedAt: Date?
 
     init(_ task: TaskItem) {
         id = task.id
@@ -43,6 +46,9 @@ private struct TaskReplicaSnapshot: Equatable {
         updatedAt = task.updatedAt
         completedAt = task.completedAt
         manualOrder = task.manualOrder
+        fields = TaskFields(task)
+        version = task.serverVersion
+        deletedAt = task.deletedAt
     }
 }
 
@@ -63,10 +69,12 @@ final class TaskStore: ObservableObject {
     @Published private(set) var lastErrorMessage: String?
     @Published private(set) var revision: UInt64 = 0
 
-    private let container: ModelContainer
-    private var context: ModelContext
+    let container: ModelContainer
+    var context: ModelContext
     private let now: () -> Date
-    private let persist: (ModelContext) throws -> Void
+    let persist: (ModelContext) throws -> Void
+    var savedFields: [UUID: TaskFields] = [:]
+    var onLocalChange: (() -> Void)?
     private var snapshotCache: [TaskScope: (revision: UInt64, snapshot: TaskScopeSnapshot)] = [:]
     private static let manualOrderStride: Int64 = 1_024
 
@@ -77,6 +85,7 @@ final class TaskStore: ObservableObject {
     ) {
         self.container = container
         context = ModelContext(container)
+        context.autosaveEnabled = false
         self.now = now
         self.persist = persist
         refresh()
@@ -89,7 +98,7 @@ final class TaskStore: ObservableObject {
         status: TaskStatus = .todo
     ) -> TaskItem? {
         let normalizedTitle = Self.normalized(title)
-        guard !normalizedTitle.isEmpty else { return nil }
+        guard !normalizedTitle.isEmpty, normalizedTitle.count <= 2000 else { return nil }
 
         let timestamp = now()
         let manualOrder: Int64?
@@ -150,7 +159,7 @@ final class TaskStore: ObservableObject {
             return false
         }
         let normalizedTitle = title.map(Self.normalized)
-        if let normalizedTitle, normalizedTitle.isEmpty { return false }
+        if let normalizedTitle, normalizedTitle.isEmpty || normalizedTitle.count > 2000 { return false }
 
         let destinationTitle = normalizedTitle ?? task.title
         let destinationPriority = priority ?? task.priority
@@ -239,7 +248,8 @@ final class TaskStore: ObservableObject {
             lastErrorMessage = error.localizedDescription
             return false
         }
-        replicas.forEach(context.delete)
+        let timestamp = now()
+        for replica in replicas { replica.deletedAt = timestamp; replica.updatedAt = timestamp }
         tasks.removeAll { $0.id == task.id }
         return save()
     }
@@ -435,6 +445,7 @@ final class TaskStore: ObservableObject {
     func refresh() {
         do {
             try reloadTasks()
+            try captureSavedFields()
             lastErrorMessage = nil
         } catch {
             lastErrorMessage = error.localizedDescription
@@ -444,15 +455,19 @@ final class TaskStore: ObservableObject {
     @discardableResult
     private func save() -> Bool {
         do {
+            try queueChanges()
             try persist(context)
+            try captureSavedFields()
             lastErrorMessage = nil
             revision &+= 1
+            onLocalChange?()
             return true
         } catch {
             let saveError = error.localizedDescription
             context.rollback()
             do {
                 try reloadTasks()
+                try captureSavedFields()
                 lastErrorMessage = saveError
             } catch {
                 lastErrorMessage = "\(saveError) · Reload failed: \(error.localizedDescription)"
@@ -461,10 +476,11 @@ final class TaskStore: ObservableObject {
         }
     }
 
-    private func reloadTasks() throws {
+    func reloadTasks() throws {
         let refreshedContext = ModelContext(container)
+        refreshedContext.autosaveEnabled = false
         let fetched = try refreshedContext.fetch(FetchDescriptor<TaskItem>())
-        let visible = visibleUniqueTasks(from: fetched)
+        let visible = visibleUniqueTasks(from: fetched).filter { $0.deletedAt == nil }
         guard !matchesPublishedTasks(visible) else { return }
         context = refreshedContext
         tasks = visible

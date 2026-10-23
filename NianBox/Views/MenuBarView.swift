@@ -3,10 +3,11 @@ import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject var store: TaskStore
+    @ObservedObject var syncEngine: SyncEngine
     let coordinator: AppCoordinator
 
     var body: some View {
-        Button("Show NianBox", systemImage: "eye") {
+        Button("Show NianBox", systemImage: "archivebox") {
             coordinator.showPanel()
         }
 
@@ -23,6 +24,8 @@ struct MenuBarView: View {
             Text("\(activeTaskCount)")
                 .foregroundStyle(.secondary)
         }
+
+        Text(syncEngine.status).font(.caption).foregroundStyle(.secondary)
 
         Button {
             coordinator.openSettings()

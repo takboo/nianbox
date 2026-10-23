@@ -5,6 +5,10 @@ import SwiftData
 final class TaskItem {
     var id: UUID = UUID()
     var title: String = ""
+    var notes: String? = nil
+    var dueAt: Date? = nil
+    var deletedAt: Date? = nil
+    var serverVersion: Int64 = 0
     var statusRaw: String = TaskStatus.todo.rawValue
     var priorityRaw: String = TaskPriority.none.rawValue
     var createdAt: Date = Date()

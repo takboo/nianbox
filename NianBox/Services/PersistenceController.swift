@@ -13,6 +13,6 @@ enum PersistenceController {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             configuration = ModelConfiguration("NianBox", url: url, cloudKitDatabase: .none)
         }
-        return try ModelContainer(for: TaskItem.self, configurations: configuration)
+        return try ModelContainer(for: TaskItem.self, PendingMutation.self, SyncCheckpoint.self, configurations: configuration)
     }
 }

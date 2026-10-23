@@ -8,6 +8,7 @@ final class AppCoordinator {
 
     let settings: AppSettings
     let store: TaskStore
+    let syncEngine: SyncEngine
     let loginItemService: LoginItemService
     let uiState: PanelUIState
 
@@ -38,15 +39,17 @@ final class AppCoordinator {
         }
 
         let store = TaskStore(container: container)
+        let syncEngine = SyncEngine(store: store)
         let uiState = PanelUIState()
         let loginItemService = LoginItemService()
         let settingsWindowController = SettingsWindowController(
-            settings: settings, loginItemService: loginItemService, store: store
+            settings: settings, loginItemService: loginItemService, store: store, syncEngine: syncEngine
         )
         let panelController = PeekPanelController(store: store, settings: settings, uiState: uiState)
 
         self.settings = settings
         self.store = store
+        self.syncEngine = syncEngine
         self.uiState = uiState
         self.panelController = panelController
         self.loginItemService = loginItemService
@@ -70,6 +73,7 @@ final class AppCoordinator {
             return
         }
 
+        if !isRunningTests { syncEngine.start() }
         newTaskHotKey.register()
         hoverMonitor.start()
         if !settings.hasShownWelcome {
@@ -81,6 +85,7 @@ final class AppCoordinator {
     }
 
     func stop() {
+        syncEngine.stop()
         hoverMonitor.stop()
         newTaskHotKey.unregister()
         menuNotificationTokens.forEach(NotificationCenter.default.removeObserver)
@@ -89,6 +94,7 @@ final class AppCoordinator {
     }
 
     func showPanel() {
+        syncEngine.requestSync()
         hoverMonitor.revealProgrammatically()
     }
 

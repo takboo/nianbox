@@ -4,6 +4,10 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var loginItemService: LoginItemService
+    @ObservedObject var syncEngine: SyncEngine
+    @State private var serverURL = ""
+    @State private var serverToken = ""
+    @State private var configurationMessage: String?
     @ObservedObject var store: TaskStore
 
     var body: some View {
@@ -15,6 +19,7 @@ struct SettingsView: View {
         .frame(width: 520)
         .onAppear {
             loginItemService.refresh()
+            serverURL = syncEngine.configuredURL
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             loginItemService.refresh()
@@ -125,6 +130,10 @@ struct SettingsView: View {
 
             Divider()
 
+            serverSection
+
+            Divider()
+
             aboutFooter
         }
         .padding(28)
@@ -155,6 +164,50 @@ struct SettingsView: View {
             get: { loginItemService.isEnabled },
             set: { loginItemService.setEnabled($0) }
         )
+    }
+
+    private var serverSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("NianBox Server", systemImage: "arrow.triangle.2.circlepath")
+                .font(.headline)
+            Text(syncEngine.status).font(.caption).foregroundStyle(.secondary)
+            TextField("https://nianbox.example.ts.net", text: $serverURL)
+                .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
+            SecureField("API token (leave blank to keep saved token)", text: $serverToken)
+                .textFieldStyle(.roundedBorder)
+            HStack {
+                Button("Save & sync") {
+                    do {
+                        try syncEngine.configure(url: serverURL, token: serverToken)
+                        serverToken = ""
+                        configurationMessage = nil
+                    } catch { configurationMessage = error.localizedDescription }
+                }
+                .disabled(syncEngine.isSyncing)
+                Button("Sync now") { syncEngine.requestSync() }
+                Button("Work offline") { syncEngine.disable() }
+            }
+            if let configurationMessage {
+                Text(configurationMessage).font(.caption).foregroundStyle(.orange)
+            }
+            if let lastSuccess = syncEngine.lastSuccess {
+                Text("Last sync \(lastSuccess.formatted(date: .abbreviated, time: .standard))")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+            Text("\(syncEngine.pendingCount) pending · \(syncEngine.blockedCount) retained conflicts")
+                .font(.caption2).foregroundStyle(.secondary)
+            Button("Export local data…") {
+                let panel = NSSavePanel()
+                panel.nameFieldStringValue = "nianbox-local-export.json"
+                guard panel.runModal() == .OK, let url = panel.url else { return }
+                do { try store.exportLocalData().write(to: url, options: .atomic) }
+                catch { configurationMessage = "Could not export local data." }
+            }
+            .controlSize(.small)
+            Text("Tasks are saved locally first. Hermes connects directly to this server, even while the Mac is off.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
     }
 
     private var aboutFooter: some View {

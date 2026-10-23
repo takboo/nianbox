@@ -8,7 +8,7 @@ struct NianBoxApp: App {
 
     var body: some Scene {
         MenuBarExtra("NianBox", systemImage: "archivebox") {
-            MenuBarView(store: coordinator.store, coordinator: coordinator)
+            MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, coordinator: coordinator)
         }
         .menuBarExtraStyle(.menu)
         .commands {
