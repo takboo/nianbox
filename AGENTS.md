@@ -11,6 +11,7 @@ Upstream instructions remain retrievable in Git history.
 - The Xcode generator owns targets and signing. Keep only macOS targets and no paid Apple capabilities.
 - Sync work must verify durable outbox recovery, idempotency, concurrency and deletion conflicts.
 - Before committing, run server tests, project-generation verification and relevant macOS tests.
+- Run interactive macOS acceptance in an isolated VM by default; read docs/macos-vm-testing.md before desktop automation. Keep host unit/build checks noninteractive.
 - Record verification and physical/deployment limitations in docs/verification.md.
 - Keep changes local unless the user authorizes remote operations.
 

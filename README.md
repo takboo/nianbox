@@ -50,4 +50,4 @@ The repository retains upstream Git history and an `upstream` remote. Fetch upst
 
 See [LICENSE](LICENSE).
 
-Interactive UI tests operate the real mouse/keyboard and can show macOS permission dialogs. Run them in a dedicated desktop session. Unattended checks use server tests, Mac unit tests and `Scripts/verify_sync.sh`; see the current [verification record](docs/verification.md) for pending UI/live acceptance.
+Interactive UI tests operate the real mouse/keyboard and can show macOS permission dialogs. Use the [isolated macOS VM workflow](docs/macos-vm-testing.md) by default. Unattended checks use server tests, Mac unit tests and `Scripts/verify_sync.sh`; see the current [verification record](docs/verification.md) for pending UI/live acceptance.

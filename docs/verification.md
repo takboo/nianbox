@@ -35,11 +35,19 @@ Later single-case attempts also failed before tasks were saved. The user reporte
 
 No claim is made that the full UI suite or human UX acceptance has passed. Prior failure artifacts remain under `.local/UITestDerivedData/Logs/Test`; they are not distribution artifacts.
 
+## Isolated VM follow-up — 2026-10-23
+
+The sibling dsh-coopanion macOS test VM was reused without opening a host VM window or sharing host input. A clean `5654d56` source bundle and the exact signed Release executable were transferred and verified. The guest has Command Line Tools but no full Xcode, so acceptance used native Accessibility discovery plus guest CoreGraphics input, with a guard that rejects physical Macs. The host rejection check passed.
+
+All **6 native VM checks passed**: capture/status/menu/completed history, real OS drag ordering, long-title wrapping, search, global shortcut/corner reveal/disk reopen, and installed Hermes MCP client→server→VM panel→completion back to REST. Source, binary and driver hashes plus original screenshots/results are recorded in [VM acceptance](macos-vm-testing.md). The product app/layout was unchanged. The previous host XCTest failures remain historical results; the full XCTest UI suite was not rerun or relabeled as passing.
+
+Guest Accessibility/event access was already available. Screenshot capture produced a guest screen-recording approval dialog; it was not automatically approved, and no host permissions were changed. After recording results, the fixture, tunnel and test container were cleaned up and the VM returned to stopped. This follow-up also reran the 19 server tests and deterministic generation check successfully.
+
 ## Remaining live acceptance
 
 1. Deploy Compose on the intended always-on host and verify the real HTTPS/Tailscale URL and ACLs from the Hermes host and Mac.
 2. Use the actual phone Hermes channel for natural-language creation, querying, modification and completion. Verify while the Mac is powered off, then start NianBox and observe the task/history.
-3. In a desktop session without competing input, complete drag/drop, global shortcut, corner reveal, offline network recovery and launch-at-login acceptance. Approve any intended macOS automation permissions manually.
+3. VM native drag/drop, shortcut, corner reveal and disk reopen have passed. Complete physical input/multi-display/Spaces, live network recovery, launch-at-login and human UX acceptance separately. Full XCUITest execution requires a guest Xcode runtime.
 4. Notarization/distribution, old Peekaboo data migration and production cutover are outside the completed local verification. No install, release or remote push has been performed.
 
 ## Reproduce without operating the desktop
