@@ -102,7 +102,7 @@ struct PeekPanelView: View {
 
             Button {
                 if uiState.isComposerPresented {
-                    uiState.endAdding()
+                    uiState.cancelAdding()
                 } else {
                     uiState.beginAdding()
                 }

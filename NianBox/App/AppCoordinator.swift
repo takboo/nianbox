@@ -11,6 +11,7 @@ final class AppCoordinator {
     let syncEngine: SyncEngine
     let loginItemService: LoginItemService
     let uiState: PanelUIState
+    let menuBarLifecycle: MenuBarLifecycle
 
     private let panelController: PeekPanelController
     private let settingsWindowController: SettingsWindowController
@@ -60,6 +61,7 @@ final class AppCoordinator {
         self.store = store
         self.syncEngine = syncEngine
         self.uiState = uiState
+        menuBarLifecycle = MenuBarLifecycle(store: store, syncEngine: syncEngine, uiState: uiState)
         self.panelController = panelController
         self.loginItemService = loginItemService
         self.settingsWindowController = settingsWindowController

@@ -4,7 +4,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from .models import Mutation, timestamp
+from .models import Mutation, timestamp, utc_instant
 
 
 class StoreError(Exception):
@@ -62,11 +62,15 @@ class Store:
     def list(self, status=None, due_before=None, limit=200, offset=0):
         # Fields queried with json_extract stay parameterized, including filters.
         with self.connect() as db:
+            # Existing records may use Z, offsets, or omitted fractional seconds.
+            # SQLite date functions round fractions; compare exact UTC microseconds instead.
+            db.create_function('utc_instant', 1, lambda value: utc_instant(value) if value else None,
+                               deterministic=True)
             rows = db.execute("""SELECT body FROM tasks WHERE json_extract(body, '$.deletedAt') IS NULL
                 AND (? IS NULL OR json_extract(body, '$.status')=?)
-                AND (? IS NULL OR json_extract(body, '$.dueAt')<=?)
+                AND (? IS NULL OR utc_instant(json_extract(body, '$.dueAt'))<=?)
                 ORDER BY json_extract(body, '$.createdAt'), id LIMIT ? OFFSET ?""",
-                (status, status, due_before, due_before, limit, offset)).fetchall()
+                (status, status, due_before, utc_instant(due_before) if due_before else None, limit, offset)).fetchall()
         return [json.loads(row[0]) for row in rows]
 
     def mutate(self, mutation: Mutation):
@@ -127,18 +131,23 @@ class Store:
             db.execute("INSERT INTO mutations VALUES (?,?,?)", (mutation_id, digest, json.dumps(result)))
         return result
 
-    def changes(self, after: int, limit: int):
+    def changes(self, after: int, limit: int, cursor_digest: str | None = None):
         with self.connect() as db:
             db.execute('BEGIN')
             server_id = db.execute("SELECT value FROM metadata WHERE key='serverId'").fetchone()[0]
             high = db.execute('SELECT COALESCE(MAX(seq),0) FROM changes').fetchone()[0]
             if after > high:
                 raise StoreError('cursor_ahead', status=409)
+            anchor = db.execute('SELECT body FROM changes WHERE seq=?', (after,)).fetchone() if after else None
+            digest = hashlib.sha256(anchor[0].encode()).hexdigest() if anchor else None
+            if cursor_digest is not None and cursor_digest != digest:
+                raise StoreError('history_diverged', status=409)
             rows = db.execute('SELECT seq,body FROM changes WHERE seq>? ORDER BY seq LIMIT ?', (after, limit + 1)).fetchall()
             more = len(rows) > limit
             rows = rows[:limit]
             return dict(changes=[json.loads(r[1]) for r in rows], cursor=rows[-1][0] if rows else after,
-                        hasMore=more, serverId=server_id)
+                        hasMore=more, serverId=server_id,
+                        cursorDigest=hashlib.sha256(rows[-1][1].encode()).hexdigest() if rows else digest)
 
     def export(self):
         with self.connect() as db:

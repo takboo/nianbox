@@ -49,7 +49,7 @@ uv run pytest -q
 
 MCP endpoint: `/mcp/`; tools: `list_tasks`, `get_task`, `create_task`, `update_task`, `complete_task`, `delete_task`. REST: `/v1/tasks`, `/v1/mutations`, `/v1/changes`, `/v1/export`. All require `Authorization: Bearer <token>`; only the minimal `/health` endpoint is anonymous.
 
-Statuses reuse upstream semantics: `todo`, `inProgress`, `done`, `backlog`. Priorities: `none`, `low`, `medium`, `high`. Only title is required. Dates use RFC 3339 with an explicit timezone. Hermes interprets natural language; the server stores structured fields.
+Statuses reuse upstream semantics: `todo`, `inProgress`, `done`, `backlog`. Priorities: `none`, `low`, `medium`, `high`. Only title is required. Dates use RFC 3339 with an explicit timezone. Due dates are metadata; local reminder notifications are not implemented. Hermes interprets natural language; the server stores structured fields.
 
 ## Upstream maintenance
 

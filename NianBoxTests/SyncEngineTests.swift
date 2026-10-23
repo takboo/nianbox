@@ -11,16 +11,18 @@ final class MemoryServer: SyncTransport {
     var receipts: [UUID: (MutationRequest, WireTask)] = [:]
     var failReads = false
     var loseNextReply = false
+    var loseNextReceipt = false
     var onWrite: (() -> Void)?
     var calls: [MutationRequest] = []
 
-    func changes(after: Int64) async throws -> ChangePage {
+    func changes(after: Int64, digest: String? = nil) async throws -> ChangePage {
         if failReads { throw URLError(.notConnectedToInternet) }
         return ChangePage(changes: history.filter { $0.version > after }, cursor: Int64(history.count), hasMore: false, serverId: serverId)
     }
     func mutate(_ request: MutationRequest) async throws -> WireTask {
         calls.append(request)
         if let (original, reply) = receipts[request.mutationId] {
+            if loseNextReceipt { loseNextReceipt = false; throw URLError(.networkConnectionLost) }
             let encoder = JSONEncoder()
             encoder.outputFormatting = .sortedKeys
             XCTAssertEqual(try encoder.encode(original), try encoder.encode(request))
@@ -60,6 +62,65 @@ final class MemoryServer: SyncTransport {
 
 @MainActor
 final class SyncEngineTests: XCTestCase {
+    func testEmptyPollIsSilentAndFailedFinalPullCannotCelebrate() async throws {
+        let store = try makeTestStore()
+        let server = MemoryServer()
+        let engine = SyncEngine(store: store, transport: server)
+        await engine.syncOnce()
+        XCTAssertEqual(engine.activity, .idle)
+        XCTAssertEqual(engine.successRevision, 0)
+        let lastSuccess = engine.lastSuccess
+        _ = store.create(title: "Retained")
+        server.onWrite = { server.failReads = true }
+        await engine.syncOnce()
+        XCTAssertEqual(engine.activity, .offline)
+        XCTAssertEqual(engine.successRevision, 0)
+        XCTAssertEqual(engine.lastSuccess, lastSuccess)
+    }
+
+    func testLostReceiptRebuildsFromDurableCanonicalSnapshotAfterReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("retry.store")
+        let server = MemoryServer()
+        var id: UUID!
+        do {
+            let store = TaskStore(container: try PersistenceController.makeContainer(storeURL: url))
+            id = try XCTUnwrap(store.create(title: "Mac original")).id
+            server.loseNextReply = true
+            await SyncEngine(store: store, transport: server).syncOnce()
+            _ = try await server.external(id: id, patch: ["title": .string("Hermes latest"), "notes": .string("Remote notes")], kind: "update")
+            server.loseNextReceipt = true
+            await SyncEngine(store: store, transport: server).syncOnce()
+            XCTAssertEqual(try store.checkpoint().cursor, 2)
+            XCTAssertEqual(try store.pendingMutations().count, 1)
+        }
+        let reopened = TaskStore(container: try PersistenceController.makeContainer(storeURL: url))
+        let engine = SyncEngine(store: reopened, transport: server)
+        await engine.syncOnce()
+        XCTAssertEqual(reopened.tasks.first?.title, "Hermes latest")
+        XCTAssertEqual(reopened.tasks.first?.notes, "Remote notes")
+        XCTAssertTrue(try reopened.pendingMutations().isEmpty)
+        XCTAssertEqual(engine.activity, .idle)
+        XCTAssertEqual(engine.successRevision, 1)
+    }
+
+    func testLostReplyKeepsLaterLocalPatchAndUnrelatedRemoteFields() async throws {
+        let store = try makeTestStore()
+        let local = try XCTUnwrap(store.create(title: "Mac original"))
+        let server = MemoryServer()
+        server.loseNextReply = true
+        let engine = SyncEngine(store: store, transport: server)
+        await engine.syncOnce()
+        _ = try await server.external(id: local.id, patch: ["title": .string("Remote title"), "notes": .string("Remote notes")], kind: "update")
+        XCTAssertTrue(store.rename(try XCTUnwrap(store.tasks.first), to: "New local intent"))
+        await engine.syncOnce()
+        XCTAssertEqual(store.tasks.first?.title, "New local intent")
+        XCTAssertEqual(store.tasks.first?.notes, "Remote notes")
+        XCTAssertEqual(server.tasks[local.id]?.notes, "Remote notes")
+        XCTAssertTrue(try store.pendingMutations().isEmpty)
+    }
+
     func testOfflineCaptureThenTwoWaySyncAndCompletionHistory() async throws {
         let store = try makeTestStore()
         let local = try XCTUnwrap(store.create(title: "Offline"))
@@ -111,6 +172,26 @@ final class SyncEngineTests: XCTestCase {
         XCTAssertEqual(store.tasks.first?.title, "Second")
         XCTAssertEqual(server.history.count, 2)
         XCTAssertEqual(try store.pendingMutations().count, 0)
+    }
+
+    func testLostReplyThenRemoteEditConvergesBeforeReportingSynced() async throws {
+        let store = try makeTestStore()
+        let local = try XCTUnwrap(store.create(title: "Mac original"))
+        let server = MemoryServer()
+        server.loseNextReply = true
+        let engine = SyncEngine(store: store, transport: server)
+        await engine.syncOnce()
+        let requestID = try XCTUnwrap(store.pendingMutations().first).mutationId
+        let latest = try await server.external(id: local.id,
+            patch: ["title": .string("Hermes latest"), "notes": .string("Remote detail")], kind: "update")
+        await engine.syncOnce()
+        XCTAssertEqual(store.tasks.first?.title, "Hermes latest")
+        XCTAssertEqual(store.tasks.first?.notes, "Remote detail")
+        XCTAssertEqual(store.tasks.first?.serverVersion, latest.version)
+        XCTAssertTrue(try store.pendingMutations().isEmpty)
+        XCTAssertEqual(server.calls.last?.mutationId, requestID)
+        XCTAssertEqual(server.history.count, 2)
+        XCTAssertEqual(engine.status, "Synced")
     }
 
     func testConflictRebasesOnlyLocalFieldsAndKeepsRemoteFields() async throws {
@@ -191,15 +272,19 @@ final class SyncEngineTests: XCTestCase {
         let store = try makeTestStore(persist: gate.save)
         let server = MemoryServer()
         _ = try await server.external()
-        let page = try await server.changes(after: 0)
+        let imported = try await server.changes(after: 0)
+        let page = ChangePage(changes: imported.changes, cursor: imported.cursor, hasMore: imported.hasMore,
+                              serverId: imported.serverId, cursorDigest: String(repeating: "a", count: 64))
         gate.shouldFail = true
         XCTAssertThrowsError(try store.applyPage(page))
         XCTAssertTrue(store.tasks.isEmpty)
         XCTAssertEqual(try store.checkpoint().cursor, 0)
+        XCTAssertNil(try store.checkpoint().cursorDigest)
         gate.shouldFail = false
         try store.applyPage(page)
         XCTAssertEqual(store.tasks.count, 1)
         XCTAssertEqual(try store.checkpoint().cursor, 1)
+        XCTAssertEqual(try store.checkpoint().cursorDigest, page.cursorDigest)
         XCTAssertEqual(try store.pendingMutations().count, 0)
     }
 

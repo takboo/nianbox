@@ -4,14 +4,12 @@ struct TaskComposerView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var uiState: PanelUIState
 
-    @State private var title = ""
-    @State private var priority: TaskPriority = .none
     @FocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 9) {
-                TextField(placeholder, text: $title)
+                TextField(placeholder, text: $uiState.draftTitle)
                     .textFieldStyle(.plain)
                     .font(.system(size: 13, design: .rounded))
                     .focused($isTitleFocused)
@@ -27,17 +25,17 @@ struct TaskComposerView: View {
                         .foregroundStyle(.white)
                 }
                 .buttonStyle(.plain)
-                .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(uiState.draftTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityLabel("Add task")
                 .accessibilityIdentifier("save-task")
             }
 
             HStack(spacing: 6) {
                 ForEach(TaskPriority.allCases) { option in
-                    let isSelected = priority == option
+                    let isSelected = uiState.draftPriority == option
 
                     Button {
-                        priority = option
+                        uiState.draftPriority = option
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: option == .none ? "flag" : "flag.fill")
@@ -68,11 +66,16 @@ struct TaskComposerView: View {
                 }
             }
             .accessibilityIdentifier("task-priority-chips")
+
+            if let error = uiState.captureError {
+                Text(error).font(.caption2).foregroundStyle(.red)
+                    .accessibilityIdentifier("capture-error")
+            }
         }
         .padding(.horizontal, 4)
         .padding(.vertical, 7)
-        .frame(height: 62)
-        .animation(NianBoxMotion.quick, value: priority)
+        .frame(minHeight: 62)
+        .animation(NianBoxMotion.quick, value: uiState.draftPriority)
         .onAppear(perform: focus)
     }
 
@@ -81,20 +84,11 @@ struct TaskComposerView: View {
     }
 
     private func save() {
-        guard store.create(
-            title: title,
-            priority: priority,
-            status: uiState.selectedScope.creationStatus
-        ) != nil else { return }
-        title = ""
-        priority = .none
-        uiState.endAdding()
+        uiState.saveCapture(in: store)
     }
 
     private func cancel() {
-        title = ""
-        priority = .none
-        uiState.endAdding()
+        uiState.cancelAdding()
     }
 
     private var placeholder: String {

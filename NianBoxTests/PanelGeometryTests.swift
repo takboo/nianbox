@@ -2,6 +2,60 @@ import XCTest
 @testable import NianBox
 
 final class PanelGeometryTests: XCTestCase {
+    @MainActor
+    func testScopeSwitchDoesNotDestroyAnOpenCaptureSession() {
+        let state = PanelUIState()
+        state.beginAdding()
+        state.selectScope(.backlog)
+        XCTAssertTrue(state.isComposerPresented)
+        XCTAssertEqual(state.selectedScope, .backlog)
+    }
+
+    @MainActor
+    func testDraftsAndPrioritiesSurviveScopeChangesAndComposerRecreation() {
+        let state = PanelUIState()
+        state.beginAdding()
+        state.draftTitle = "Tasks thought"
+        state.draftPriority = .high
+        state.selectScope(.backlog)
+        XCTAssertEqual(state.draftTitle, "")
+        state.draftTitle = "Backlog thought"
+        state.draftPriority = .low
+        state.endAdding()
+        state.beginAdding()
+        XCTAssertEqual(state.draftTitle, "Backlog thought")
+        state.selectScope(.tasks)
+        XCTAssertEqual(state.draftTitle, "Tasks thought")
+        XCTAssertEqual(state.draftPriority, .high)
+        state.cancelAdding()
+        state.beginAdding()
+        XCTAssertEqual(state.draftTitle, "")
+        state.selectScope(.backlog)
+        XCTAssertEqual(state.draftTitle, "Backlog thought")
+        XCTAssertEqual(state.draftPriority, .low)
+    }
+
+    @MainActor
+    func testCaptureFailureRetainsDraftAndOnlyCommittedSaveReportsSuccess() throws {
+        let gate = PersistenceGate()
+        let store = try makeTestStore(persist: gate.save)
+        let state = PanelUIState()
+        state.selectScope(.backlog)
+        state.beginAdding()
+        state.draftTitle = "Keep this thought"
+        gate.shouldFail = true
+        XCTAssertFalse(state.saveCapture(in: store))
+        XCTAssertEqual(state.draftTitle, "Keep this thought")
+        XCTAssertTrue(state.isComposerPresented)
+        guard case .failed = state.captureFeedback else { return XCTFail("No save failure feedback") }
+        gate.shouldFail = false
+        XCTAssertTrue(state.saveCapture(in: store))
+        XCTAssertEqual(state.draftTitle, "")
+        XCTAssertFalse(state.isComposerPresented)
+        XCTAssertEqual(store.tasks.first?.status, .backlog)
+        guard case .saved = state.captureFeedback else { return XCTFail("No committed save feedback") }
+    }
+
     func testPanelUsesLargeRoundedWidthAndThirtyPercentLargerHeight() {
         XCTAssertEqual(PanelGeometry.panelWidth, 410, accuracy: 0.001)
         XCTAssertEqual(PanelGeometry.minimumHeight, 494, accuracy: 0.001)

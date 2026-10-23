@@ -188,6 +188,77 @@ def test_naive_due_filter_is_rejected(client):
     assert client.get('/v1/tasks?due_before=2026-10-24T10:00:00').status_code == 422
 
 
+@pytest.mark.parametrize('cutoff', ['2026-10-24T10:00:00Z', '2026-10-24T18:00:00+08:00',
+                                  '2026-10-24T10:00:00.000001Z'])
+def test_due_filter_compares_instants_with_microsecond_precision(client, cutoff):
+    times = ['2026-10-24T10:00:00Z', '2026-10-24T10:00:00.000001Z', '2026-10-24T10:00:00.000002Z']
+    tasks = [client.post('/v1/tasks', json={'title': str(i), 'dueAt': due}).json()['task']
+             for i, due in enumerate(times)]
+    expected = tasks[:2] if '.000001' in cutoff else tasks[:1]
+    result = client.get('/v1/tasks', params={'due_before': cutoff})
+    assert result.status_code == 200
+    assert result.json()['tasks'] == expected
+
+
+@pytest.mark.parametrize('path,params', [('/v1/tasks', {'offset': 2**63}),
+                                      ('/v1/changes', {'after': 2**63})])
+def test_pagination_rejects_sqlite_integer_overflow(client, path, params):
+    assert client.get(path, params=params).status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_mcp_waiting_for_write_lock_keeps_shared_event_loop_responsive(tmp_path, monkeypatch):
+    import socket
+    import sqlite3
+    import threading
+    import time
+    import uvicorn
+    from mcp import ClientSession
+    from mcp.client.streamable_http import streamablehttp_client
+
+    app = create_app(str(tmp_path / 'locked.sqlite'), TOKEN)
+    sock = socket.socket()
+    sock.bind(('127.0.0.1', 0))
+    server = uvicorn.Server(uvicorn.Config(app, log_level='critical', access_log=False))
+    runner = asyncio.create_task(server.serve(sockets=[sock]))
+    entered = threading.Event()
+    timing = {}
+    original = app.state.store.mutate
+    def observed_mutation(request):
+        timing['entered'] = time.monotonic()
+        entered.set()
+        return original(request)
+    monkeypatch.setattr(app.state.store, 'mutate', observed_mutation)
+    try:
+        for _ in range(100):
+            if server.started:
+                break
+            await asyncio.sleep(.02)
+        assert server.started
+        url = f'http://127.0.0.1:{sock.getsockname()[1]}/mcp/'
+        async with streamablehttp_client(url, headers={'Authorization': 'Bearer ' + TOKEN}) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                lock = sqlite3.connect(app.state.store.path, check_same_thread=False)
+                lock.execute('BEGIN IMMEDIATE')
+                release = threading.Timer(.8, lock.rollback)
+                release.start()
+                call = asyncio.create_task(session.call_tool('create_task', {'title': 'Lock waiter'}))
+                try:
+                    assert await asyncio.to_thread(entered.wait, 2)
+                    latency = time.monotonic() - timing['entered']
+                    result = await call
+                    assert not result.isError
+                    assert latency < .4, f'MCP blocked the shared event loop for {latency:.3f}s'
+                finally:
+                    await asyncio.to_thread(release.join)
+                    lock.close()
+    finally:
+        server.should_exit = True
+        await runner
+        sock.close()
+
+
 def test_completed_history_survives_backup_and_restart(tmp_path):
     store = Store(str(tmp_path / 'history.sqlite'))
     created = store.mutate(Mutation.model_validate(mutation()))['task']
@@ -195,3 +266,22 @@ def test_completed_history_survives_backup_and_restart(tmp_path):
     store.backup(str(tmp_path / 'history-backup.sqlite'))
     restored = Store(str(tmp_path / 'history-backup.sqlite'))
     assert restored.list(status='done') == [done]
+
+
+def test_restored_history_is_detected_even_after_sequence_catches_up(tmp_path):
+    store = Store(str(tmp_path / 'original.sqlite'))
+    first = store.mutate(Mutation.model_validate(mutation()))['task']
+    backup = str(tmp_path / 'backup.sqlite')
+    store.backup(backup)
+    store.mutate(Mutation.model_validate(mutation(first['id'], 'update', first['version'], {'title': 'Original tail'})))
+    with TestClient(create_app(store.path, TOKEN), headers={'Authorization': 'Bearer ' + TOKEN}) as original:
+        checkpoint = original.get('/v1/changes').json()
+    restored = Store(backup)
+    restored.mutate(Mutation.model_validate(mutation(first['id'], 'update', first['version'], {'title': 'Restored branch'})))
+    restored.mutate(Mutation.model_validate(mutation()))
+    with TestClient(create_app(backup, TOKEN), headers={'Authorization': 'Bearer ' + TOKEN}) as client:
+        assert client.get('/v1/changes').json()['serverId'] == checkpoint['serverId']
+        result = client.get('/v1/changes', params={'after': checkpoint['cursor'],
+                           'cursor_digest': checkpoint.get('cursorDigest', '0' * 64)})
+        assert result.status_code == 409
+        assert result.json()['error'] == 'history_diverged'

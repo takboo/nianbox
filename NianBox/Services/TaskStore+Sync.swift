@@ -77,9 +77,29 @@ extension TaskStore {
     }
 
     func accept(_ task: WireTask, for pending: PendingMutation) throws {
-        context.delete(pending)
-        try applyRemote(task)
-        try saveSyncTransaction()
+        do {
+            let local = try context.fetch(FetchDescriptor<TaskItem>()).filter { $0.id == task.id }
+                .max { $0.serverVersion < $1.serverVersion }
+            let canonical: WireTask
+            if let local, local.serverVersion > task.version {
+                guard let data = local.serverSnapshot else {
+                    throw SyncFailure.message("A newer server snapshot is needed before acknowledging this retry. Local changes retained; export and reconcile.")
+                }
+                canonical = try JSONDecoder().decode(WireTask.self, from: data)
+                guard canonical.version == local.serverVersion else {
+                    throw SyncFailure.message("Invalid cached server snapshot. Local changes retained.")
+                }
+            } else { canonical = task }
+            context.delete(pending)
+            // A replay receipt can predate a record already imported by the leading pull.
+            // Rebuild from that canonical record after removing only this queue entry.
+            try applyRemote(canonical)
+            try saveSyncTransaction()
+        } catch {
+            context.rollback()
+            refresh()
+            throw error
+        }
     }
 
     func rebase(_ pending: PendingMutation, onto task: WireTask) throws {
@@ -103,6 +123,7 @@ extension TaskStore {
         state.serverId = page.serverId
         for task in page.changes { try applyRemote(task) }
         state.cursor = page.cursor
+        state.cursorDigest = page.cursorDigest
         try saveSyncTransaction()
     }
 
@@ -117,6 +138,7 @@ extension TaskStore {
         let pending = try pendingMutations().filter { $0.taskId == remote.id }
         for task in tasks {
             guard remote.version >= task.serverVersion else { continue }
+            task.serverSnapshot = try JSONEncoder().encode(remote)
             task.title = remote.title
             task.notes = remote.notes
             task.status = remote.status
@@ -167,7 +189,7 @@ extension TaskStore {
         } catch {
             context.rollback()
             refresh()
-            throw error
+            throw SyncFailure.storage
         }
     }
 

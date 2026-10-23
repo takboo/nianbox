@@ -68,6 +68,7 @@ final class TaskStore: ObservableObject {
     @Published private(set) var tasks: [TaskItem] = []
     @Published private(set) var lastErrorMessage: String?
     @Published private(set) var revision: UInt64 = 0
+    @Published private(set) var lastSaveFailed = false
 
     let container: ModelContainer
     var context: ModelContext
@@ -460,10 +461,12 @@ final class TaskStore: ObservableObject {
             try captureSavedFields()
             lastErrorMessage = nil
             revision &+= 1
+            lastSaveFailed = false
             onLocalChange?()
             return true
         } catch {
             let saveError = error.localizedDescription
+            lastSaveFailed = true
             context.rollback()
             do {
                 try reloadTasks()

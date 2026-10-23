@@ -67,7 +67,7 @@ Pick fresh filenames; commands refuse to overwrite backups/exports. Store off-ho
 
 Stop writes and stop the service. Preserve the existing data volume. Create a NEW volume, populate it with the backed-up SQLite database named `nianbox.sqlite`, set ownership to UID/GID 10001, and use a Compose override that mounts the new volume at `/data`. Start against this copy and verify health, task counts, completed history, tombstones and authenticated MCP before switching clients. Retain the previous volume for rollback. Never use `docker compose down -v` as part of upgrades.
 
-A restore to an earlier point may leave Mac cursors ahead: the client must stop and preserve its local store/outbox. Reconcile the missing interval before resuming. Do not silently reset cursors and upload an old cache. Moving to another server is a deliberate data migration, not a settings-only change. Token rotation requires updating server, Mac and Hermes; it does not change task data.
+Upgraded Mac clients persist a history digest with each cursor. A restored backup that later reuses sequence numbers is rejected as `history_diverged`; clients without a saved digest cannot detect that fork. A restore to an earlier point may also leave Mac cursors ahead: the client must stop and preserve its local store/outbox. Reconcile the missing interval before resuming. Do not silently reset cursors and upload an old cache. Moving to another server is a deliberate data migration, not a settings-only change. Token rotation requires updating server, Mac and Hermes; it does not change task data.
 
 ### Concrete recovery commands
 

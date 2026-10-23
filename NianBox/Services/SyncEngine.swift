@@ -3,6 +3,10 @@ import Combine
 import Foundation
 import Network
 
+enum SyncActivity: Equatable {
+    case localOnly, idle, waiting, transferring, offline, connectionError, conflict, storageFailure
+}
+
 @MainActor
 final class SyncEngine: ObservableObject {
     @Published private(set) var status = "Local only"
@@ -11,6 +15,8 @@ final class SyncEngine: ObservableObject {
     @Published private(set) var pendingCount = 0
     @Published private(set) var blockedCount = 0
     @Published private(set) var configuredURL: String
+    @Published private(set) var activity: SyncActivity = .localOnly
+    @Published private(set) var successRevision: UInt64 = 0
 
     private let store: TaskStore
     private let defaults: UserDefaults
@@ -21,6 +27,7 @@ final class SyncEngine: ObservableObject {
     private var observations: [NSObjectProtocol] = []
     private var needsAnotherPass = false
     private var running = false
+    private var transferredChanges = false
 
     init(store: TaskStore, defaults: UserDefaults = .standard, transport: (any SyncTransport)? = nil) {
         self.store = store
@@ -28,6 +35,7 @@ final class SyncEngine: ObservableObject {
         self.transport = transport
         configuredURL = defaults.string(forKey: "serverURL") ?? ""
         updateCounts()
+        activity = transport == nil ? .localOnly : (blockedCount > 0 ? .conflict : pendingCount > 0 ? .waiting : .idle)
     }
 
     func configure(url: String, token: String) throws {
@@ -37,6 +45,7 @@ final class SyncEngine: ObservableObject {
         try store.bindServer(client)
         if !token.isEmpty { try ServerTokenStore().save(token) }
         transport = client
+        activity = .waiting
         configuredURL = client.endpoint
         defaults.set(client.endpoint, forKey: "serverURL")
         defaults.set(true, forKey: "syncEnabled")
@@ -49,6 +58,7 @@ final class SyncEngine: ObservableObject {
         stop()
         transport = nil
         status = "Local only · changes retained"
+        activity = .localOnly
         store.onLocalChange = { [weak self] in self?.updateCounts() }
     }
 
@@ -58,9 +68,17 @@ final class SyncEngine: ObservableObject {
         if transport == nil, defaults.bool(forKey: "syncEnabled") {
             do {
                 transport = try ServerClient(url: configuredURL, token: try ServerTokenStore().load() ?? "")
-            } catch { status = error.localizedDescription }
+                activity = .idle
+            } catch { status = error.localizedDescription; activity = .connectionError }
         }
-        store.onLocalChange = { [weak self] in self?.updateCounts(); self?.requestSync() }
+        store.onLocalChange = { [weak self] in
+            guard let self else { return }
+            self.updateCounts()
+            if !self.isSyncing, self.transport != nil {
+                self.activity = self.blockedCount > 0 ? .conflict : self.pendingCount > 0 ? .waiting : .idle
+            }
+            self.requestSync()
+        }
         let monitor = NWPathMonitor()
         monitor.pathUpdateHandler = { [weak self] path in
             guard path.status == .satisfied else { return }
@@ -115,7 +133,10 @@ final class SyncEngine: ObservableObject {
         guard !isSyncing, let transport else { return }
         isSyncing = true
         needsAnotherPass = false
+        transferredChanges = false
         status = "Syncing…"
+        updateCounts()
+        if pendingCount > 0 { showTransfer() }
         defer {
             isSyncing = false
             updateCounts()
@@ -133,6 +154,8 @@ final class SyncEngine: ObservableObject {
                 do {
                     let task = try await transport.mutate(request)
                     try store.accept(task, for: pending)
+                    transferredChanges = true
+                    showTransfer()
                 } catch let rejection as ServerRejection {
                     if rejection.error == "version_conflict", let current = rejection.current {
                         conflicts[pending.taskId, default: 0] += 1
@@ -146,19 +169,29 @@ final class SyncEngine: ObservableObject {
                 }
             }
             try await pull(transport)
-            updateCounts()
-            lastSuccess = Date()
+            guard updateCounts() else { throw SyncFailure.storage }
             if blockedCount > 0 {
+                activity = .conflict
                 status = "\(blockedCount) deleted-task edits saved for export"
             } else if pendingCount > 0 {
+                activity = .waiting
                 status = "\(pendingCount) changes waiting"
                 needsAnotherPass = true
-            } else { status = "Synced" }
+            } else {
+                lastSuccess = Date()
+                status = "Synced"
+                activity = .idle
+                if transferredChanges { successRevision &+= 1 }
+            }
         } catch let rejection as ServerRejection {
+            activity = .connectionError
             status = "Sync paused: \(rejection.error) · local changes retained"
         } catch is CancellationError {
+            activity = pendingCount > 0 ? .waiting : .idle
             status = "Sync paused · local changes retained"
         } catch {
+            activity = error is URLError ? .offline : .connectionError
+            if let failure = error as? SyncFailure, case .storage = failure { activity = .storageFailure }
             status = "Sync unavailable · local changes retained"
             // Present actionable local errors without printing endpoints, tokens or task contents.
             if let failure = error as? SyncFailure { status = failure.localizedDescription }
@@ -169,18 +202,30 @@ final class SyncEngine: ObservableObject {
         // Bound work per activation; the next scheduled pass continues from the committed cursor.
         for _ in 0..<100 {
             try Task.checkCancellation()
-            let page = try await transport.changes(after: store.checkpoint().cursor)
+            let checkpoint = try store.checkpoint()
+            let page = try await transport.changes(after: checkpoint.cursor, digest: checkpoint.cursorDigest)
             try store.applyPage(page)
+            if !page.changes.isEmpty { transferredChanges = true; showTransfer() }
             if !page.hasMore { return }
         }
         throw SyncFailure.message("More history to import; the next sync will continue.")
     }
 
-    private func updateCounts() {
+    private func showTransfer() {
+        activity = blockedCount > 0 ? .conflict : .transferring
+    }
+
+    @discardableResult
+    private func updateCounts() -> Bool {
         do {
             let pending = try store.pendingMutations(includeBlocked: true)
             pendingCount = pending.filter { $0.blockedReason == nil }.count
             blockedCount = pending.filter { $0.blockedReason != nil }.count
-        } catch { status = "Cannot read sync queue; local store preserved" }
+            return true
+        } catch {
+            status = "Cannot read sync queue; local store preserved"
+            activity = .storageFailure
+            return false
+        }
     }
 }

@@ -26,6 +26,7 @@ final class PendingMutation {
 final class SyncCheckpoint {
     var key: String = "nianbox"
     var cursor: Int64 = 0
+    var cursorDigest: String? = nil
     var nextOrder: Int64 = 0
     var serverId: String? = nil
     var endpoint: String? = nil

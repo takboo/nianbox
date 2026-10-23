@@ -5,6 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 Status = Literal["todo", "inProgress", "done", "backlog"]
 Priority = Literal["none", "low", "medium", "high"]
+MAX_SQLITE_INTEGER = 2**63 - 1
+
+
+def utc_instant(value: str) -> str:
+    """A fixed-width UTC key, including all six fractional digits, for exact ordering."""
+    return datetime.fromisoformat(value).astimezone(timezone.utc).isoformat(timespec='microseconds')
 
 
 def timestamp() -> str:
@@ -47,7 +53,7 @@ class Mutation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mutationId: UUID
     taskId: UUID
-    baseVersion: int = Field(ge=0)
+    baseVersion: int = Field(ge=0, le=MAX_SQLITE_INTEGER)
     kind: Literal["create", "update", "delete"]
     patch: Patch = Field(default_factory=Patch)
 

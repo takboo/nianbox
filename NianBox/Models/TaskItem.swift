@@ -9,6 +9,8 @@ final class TaskItem {
     var dueAt: Date? = nil
     var deletedAt: Date? = nil
     var serverVersion: Int64 = 0
+    // Canonical fields before pending local patches; optional for existing stores.
+    var serverSnapshot: Data? = nil
     var statusRaw: String = TaskStatus.todo.rawValue
     var priorityRaw: String = TaskPriority.none.rawValue
     var createdAt: Date = Date()

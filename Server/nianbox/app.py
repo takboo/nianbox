@@ -10,9 +10,10 @@ from fastapi.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.concurrency import run_in_threadpool
 from pydantic import ValidationError
 
-from .models import Mutation, Patch, Priority, Status
+from .models import MAX_SQLITE_INTEGER, Mutation, Patch, Priority, Status
 from .store import Store, StoreError
 
 
@@ -68,11 +69,8 @@ def create_app(db_path: str | None = None, token: str | None = None):
         return store.mutate(Mutation(mutationId=mutation_id or uuid4(), taskId=task_id,
                                     baseVersion=base_version, kind=kind, patch=Patch.model_validate(patch)))
 
-    @mcp.tool()
-    def list_tasks(status: Status | None = None, due_before: datetime | None = None,
-                   limit: int = 200, offset: int = 0) -> dict:
-        """List retained tasks (including completed history), excluding deleted tasks. Paginate with offset."""
-        if not 1 <= limit <= 500 or offset < 0:
+    def query_tasks(status, due_before, limit, offset):
+        if not 1 <= limit <= 500 or not 0 <= offset <= MAX_SQLITE_INTEGER:
             raise ValueError('invalid_pagination')
         if due_before and due_before.tzinfo is None:
             raise StoreError('due_before_requires_timezone', status=422)
@@ -80,35 +78,41 @@ def create_app(db_path: str | None = None, token: str | None = None):
         return {'tasks': store.list(status, due, limit, offset)}
 
     @mcp.tool()
-    def get_task(id: UUID) -> dict:
-        """Read a task and its version. Deleted tasks are not returned."""
-        return store.get(str(id))
+    async def list_tasks(status: Status | None = None, due_before: datetime | None = None,
+                         limit: int = 200, offset: int = 0) -> dict:
+        """List retained tasks (including completed history), excluding deleted tasks. Paginate with offset."""
+        return await run_in_threadpool(query_tasks, status, due_before, limit, offset)
 
     @mcp.tool()
-    def create_task(title: str, notes: str | None = None, status: Status = 'todo',
+    async def get_task(id: UUID) -> dict:
+        """Read a task and its version. Deleted tasks are not returned."""
+        return await run_in_threadpool(store.get, str(id))
+
+    @mcp.tool()
+    async def create_task(title: str, notes: str | None = None, status: Status = 'todo',
                     priority: Priority = 'none', dueAt: datetime | None = None,
                     id: UUID | None = None, mutationId: UUID | None = None) -> dict:
         """Capture a task; only title is required. Reuse id and mutationId for a retry."""
         task_id = id or uuid4()
-        return apply(task_id, 'create', dict(title=title, notes=notes, status=status, priority=priority, dueAt=dueAt),
+        return await run_in_threadpool(apply, task_id, 'create', dict(title=title, notes=notes, status=status, priority=priority, dueAt=dueAt),
                      0, mutationId or uuid5(NAMESPACE_URL, f'nianbox:create:{task_id}'))
 
     @mcp.tool()
-    def update_task(id: UUID, version: int, patch: Patch, mutationId: UUID | None = None) -> dict:
+    async def update_task(id: UUID, version: int, patch: Patch, mutationId: UUID | None = None) -> dict:
         """Update only supplied fields using the version returned by get_task. Null clears notes/dueAt.
         On version_conflict, reread and decide whether to retry; completed history is retained.
         """
-        return apply(id, 'update', patch.model_dump(exclude_unset=True), version, mutationId)
+        return await run_in_threadpool(apply, id, 'update', patch.model_dump(exclude_unset=True), version, mutationId)
 
     @mcp.tool()
-    def complete_task(id: UUID, version: int, mutationId: UUID | None = None) -> dict:
+    async def complete_task(id: UUID, version: int, mutationId: UUID | None = None) -> dict:
         """Mark done without deleting history. Supply current version; reuse mutationId for retries."""
-        return apply(id, 'update', {'status': 'done'}, version, mutationId)
+        return await run_in_threadpool(apply, id, 'update', {'status': 'done'}, version, mutationId)
 
     @mcp.tool()
-    def delete_task(id: UUID, version: int, mutationId: UUID | None = None) -> dict:
+    async def delete_task(id: UUID, version: int, mutationId: UUID | None = None) -> dict:
         """Explicitly delete a task using a permanent tombstone. Deletion wins over stale edits."""
-        return apply(id, 'delete', {}, version, mutationId)
+        return await run_in_threadpool(apply, id, 'delete', {}, version, mutationId)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -143,8 +147,8 @@ def create_app(db_path: str | None = None, token: str | None = None):
     @app.get('/v1/tasks')
     def tasks(status: Status | None = None, due_before: datetime | None = None,
               limit: Annotated[int, Query(ge=1, le=500)] = 200,
-              offset: Annotated[int, Query(ge=0)] = 0):
-        return list_tasks(status, due_before, limit, offset)
+              offset: Annotated[int, Query(ge=0, le=MAX_SQLITE_INTEGER)] = 0):
+        return query_tasks(status, due_before, limit, offset)
 
     @app.get('/v1/tasks/{id}')
     def task(id: UUID):
@@ -166,11 +170,11 @@ def create_app(db_path: str | None = None, token: str | None = None):
         return apply(task_id, 'create', patch.model_dump(exclude_unset=True), 0, mutation_id)
 
     @app.patch('/v1/tasks/{id}')
-    def update(id: UUID, patch: Patch, version: Annotated[int, Query(ge=1)], mutationId: UUID):
+    def update(id: UUID, patch: Patch, version: Annotated[int, Query(ge=1, le=MAX_SQLITE_INTEGER)], mutationId: UUID):
         return apply(id, 'update', patch.model_dump(exclude_unset=True), version, mutationId)
 
     @app.delete('/v1/tasks/{id}')
-    def delete(id: UUID, version: Annotated[int, Query(ge=0)], mutationId: UUID):
+    def delete(id: UUID, version: Annotated[int, Query(ge=0, le=MAX_SQLITE_INTEGER)], mutationId: UUID):
         return apply(id, 'delete', {}, version, mutationId)
 
     @app.post('/v1/mutations')
@@ -178,8 +182,10 @@ def create_app(db_path: str | None = None, token: str | None = None):
         return store.mutate(mutation)
 
     @app.get('/v1/changes')
-    def changes(after: Annotated[int, Query(ge=0)] = 0, limit: Annotated[int, Query(ge=1, le=500)] = 200):
-        return store.changes(after, limit)
+    def changes(after: Annotated[int, Query(ge=0, le=MAX_SQLITE_INTEGER)] = 0,
+                limit: Annotated[int, Query(ge=1, le=500)] = 200,
+                cursor_digest: Annotated[str | None, Query(pattern='^[0-9a-f]{64}$')] = None):
+        return store.changes(after, limit, cursor_digest)
 
     @app.get('/v1/export')
     def export():

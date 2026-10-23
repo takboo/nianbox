@@ -40,9 +40,10 @@ final class ServerClient: SyncTransport {
         session = URLSession(configuration: config, delegate: RejectRedirects(), delegateQueue: nil)
     }
 
-    func changes(after: Int64) async throws -> ChangePage {
+    func changes(after: Int64, digest: String? = nil) async throws -> ChangePage {
         var components = URLComponents(url: baseURL.appendingPathComponent("v1/changes"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "after", value: String(after)), URLQueryItem(name: "limit", value: "200")]
+        if let digest { components.queryItems?.append(URLQueryItem(name: "cursor_digest", value: digest)) }
         return try await send(URLRequest(url: components.url!))
     }
 

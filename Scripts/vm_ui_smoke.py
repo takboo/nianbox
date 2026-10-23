@@ -177,6 +177,31 @@ def drag_order():
     assert second['y'] > first['y'], 'OS drag did not reorder: Beta=%s Alpha=%s' % (second['y'], first['y'])
 
 
+def draft_scope_recovery():
+    launch()
+    probe('click', 'id=add-task-button')
+    probe('click', 'id=new-task-title')
+    probe('type', 'Tasks draft retained')
+    probe('click', 'id=task-scope-backlog')
+    assert wait('id=new-task-title').get('AXValue', '') == ''
+    probe('click', 'id=new-task-title')
+    probe('type', 'Backlog draft retained')
+    probe('click', 'id=task-scope-tasks')
+    assert wait('id=new-task-title').get('AXValue') == 'Tasks draft retained'
+    capture('tasks-draft-restored')
+    probe('click', 'id=new-task-title')
+    probe('key', 'return')
+    wait('text=Tasks draft retained')
+    probe('click', 'id=task-scope-backlog')
+    probe('click', 'id=add-task-button')
+    assert wait('id=new-task-title').get('AXValue') == 'Backlog draft retained'
+    capture('backlog-draft-restored')
+    probe('click', 'id=new-task-title')
+    probe('key', 'return')
+    wait('text=Backlog draft retained')
+    capture('backlog-draft-saved')
+
+
 def wrapping():
     launch()
     title = 'A long task title that should wrap onto multiple lines instead of being cut off'
@@ -310,6 +335,7 @@ try:
     save()
     check('capture_status_menu_history', capture_status_menu)
     check('native_drag_order', drag_order)
+    check('draft_scope_recovery', draft_scope_recovery)
     check('long_title_wrap', wrapping)
     check('search', search)
     check('global_shortcut_corner_and_disk_reopen', global_corner_persistence)

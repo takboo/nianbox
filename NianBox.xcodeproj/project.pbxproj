@@ -7,55 +7,58 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		007E932779160E21E7F9A5DA63B56981 /* PeekPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 956BA481F49E43E15FD1C4336E6A119E /* PeekPanelView.swift */; };
-		0429D5908A55B581EB781310A0D129AE /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58989A4BEE8D535FDB184D848606889 /* LoginItemService.swift */; };
-		0AF6239EC8C2F0ACA96D757D8F1BC0CF /* NianBoxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06876BCF212BF72D4777D479D05B6EB /* NianBoxApp.swift */; };
-		1270BEAF8BC5DD4EA5E0A559EB682FF2 /* PeekPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93FF01EBDE5FBB7861DB50082A0889E /* PeekPanelController.swift */; };
-		1B416BE193DE9ABB0479AE656B0846F0 /* PanelGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703A565561C7F46B8950CAE46018E3CC /* PanelGeometry.swift */; };
-		22690C02F640BF6639935FEFAE8D9231 /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBF7F91688206A785AF485774509BB4 /* TaskRowView.swift */; };
-		246018C678B89E5EC14D2BB945923F2D /* TaskStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433E49C2B74EC8F8E09D2E5422E1ADDE /* TaskStore.swift */; };
-		259CD865243CE0CC90E8975225EF46B0 /* PeekPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E5833BFCED9EDBA8E593B2EF0013F9 /* PeekPanel.swift */; };
-		2772325623C606321202FBCDFC11628E /* PanelUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE7944310605341BEDEE613309F0F2E /* PanelUIState.swift */; };
-		2B5B85AD03D857335A45CB0CF72C5ED0 /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E43029E82432968924FDE7F311351E /* ShortcutRecorder.swift */; };
-		2D36EBC5A293F554C7976E7F1DE04D54 /* CornerHoverStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560B5DB7260EE4A109E55340E609824D /* CornerHoverStateMachine.swift */; };
-		306230A6AB757CF731FB3ED8A77F5D95 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71C3E1265F82D9EE88E9FA84068AF9C9 /* Assets.xcassets */; };
+		036FB051090E960509634DD0870A5B0A /* SyncEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17928CE82B76E069B763B774277525 /* SyncEngineTests.swift */; };
+		0691EB9B51FCA120801B4B9D5793257A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205A61EC0E360BD74AEA4274DEE31381 /* SettingsView.swift */; };
+		06CB7EA40A42AA92484ECA4A7120ACD4 /* PanelGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982A90C51850B1905118920971638D40 /* PanelGeometryTests.swift */; };
+		09CDA93F3C766A64D9D87792D780673B /* ShortcutSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9F361184BAD6822B3195835E48E5BF /* ShortcutSettingsTests.swift */; };
+		0A98E763120DDD44D7D91C3353EA7277 /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B679C6E048488E96EB41D2A52527A1 /* TestSupport.swift */; };
+		0B968FB0597C180278B613E83C42A8CF /* PeekPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B437AE8F479B2A8F4E1320FDE36D88B2 /* PeekPanel.swift */; };
+		1F9C2270A30A85466C88758B095DEFEE /* TaskTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28C26C77CA4B2924F2EF8304E19F4165 /* TaskTypes.swift */; };
+		214FF6DBDEBAACB3CD725F3C8DE05113 /* QuickCaptureShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 085F42C3485D5CB20C78BD6C583EF789 /* QuickCaptureShortcut.swift */; };
+		239D64319D0F2BE709BEF591134EFEBC /* NianBoxStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CBB3A8A8B74350A7344E46980CE6309 /* NianBoxStyle.swift */; };
+		242FC79360DACD25B151A9455C6D296A /* PanelGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751865A454C060674A1B258487B011C1 /* PanelGeometry.swift */; };
+		26B464B24E00BC15B8C0D0AC62D9D481 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6771AA77E4AAB506D52696C0CA543B /* SyncEngine.swift */; };
+		2AEFAC1CEBA248613BD58F16293330B4 /* TaskStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CEE1E44D0128F8599F65599BBC33182 /* TaskStoreTests.swift */; };
+		33831C6BF2449CA8E3139645D4978CBE /* PeekPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0B20B32B0DA69F8FBD719F59B49CBF /* PeekPanelController.swift */; };
+		35E454D01799FCA50C843F91DF52B486 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5148669CB706C1BC64028AB3684247 /* TaskItem.swift */; };
 		38EEEC4A2B83A6E4313B1351201548EC /* NianBoxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49F2F99BC2F46B0632BA877706B4BCC /* NianBoxUITests.swift */; };
-		3FACB4B6B9732A57263881803D66B7C6 /* SyncTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D064AE3050C1E265DF3A3050A4AE0B1B /* SyncTypes.swift */; };
-		486B43F6B2D638D2F4CDAB74DDC231CC /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 340AF24EFC90EB999781ECCC33ED88E8 /* AppCoordinator.swift */; };
-		4FF9B35F28640F0A61129D2181E1872B /* TaskStore+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532D9744CC327E3512750216816FEF0A /* TaskStore+Sync.swift */; };
-		5462534E7D660C0692CE17DA5E82C066 /* PanelGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46FB3BB16BA60D2930BB751C91810EB3 /* PanelGeometryTests.swift */; };
-		551F2134497CAB3DDDEF633530A8A5AD /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B5F4855A486423FD5AD5C7C7F8765C /* GlobalHotKey.swift */; };
-		5D33A893AAF742D2FFF6790442A1FED9 /* ShortcutSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6539CCFD16A676AA71758BCD209318 /* ShortcutSettingsTests.swift */; };
-		6073796F5818442465D17BFF183CDCC7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */; };
-		6449F44791CC10060A4183D998D74EB1 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130261DCC202DD16FA7986E5200FBDD7 /* PersistenceController.swift */; };
-		646A8D33E68E7928969573775D16DA3F /* TaskTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A2A65E5B64105E72F7F1BA8B11FFE4 /* TaskTypes.swift */; };
-		6715D4D111E2632875A0219A210B2211 /* CornerPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE8F3E279F6F0757C703E316B25A4A /* CornerPicker.swift */; };
-		679D95A420D9E915BD73CEAC60AD17D4 /* TaskDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0706A32248ED6FA69AB152782651931 /* TaskDragPayload.swift */; };
-		76381B52D0E029ED752F0548D91689CC /* TaskStatusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C50EC0207F53150A50F94BEF189515 /* TaskStatusButton.swift */; };
-		82E0DB54DD6366A7CA97B12865A62C42 /* QuickCaptureShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4169F2E88F1DF48C273EA418CE482FCF /* QuickCaptureShortcut.swift */; };
-		8A93E847BA30326FBAE3F85AA6AA7936 /* TaskStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB1A6EBD7082B789E5F5ACED526495E /* TaskStoreTests.swift */; };
-		8ECE1827AEE12848719520F6A75D13EB /* ServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19429892456D0586EA17BA237F0E4FD7 /* ServerClient.swift */; };
-		935BAA0C566F91045F67911996B7AD9F /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F9D081F9FCF926CF0056C84104A45B /* AppSettings.swift */; };
-		941433B599F2BC20B0B84C19C34A1AA0 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */; };
-		9471A542EB801ED5D1434C227E852059 /* CornerHoverStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B00EFAF4D2099FC206FCBA218B1AD6 /* CornerHoverStateMachineTests.swift */; };
-		94B9D7F1AB35DDF347BB24C6AFDE984C /* TaskSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A50C0CC08BEE156288AF243F8AD6C0 /* TaskSectionView.swift */; };
-		98647F87A6C31F64E87DD4A4073BC3AE /* NianBoxTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F8A0541AA143A1CA598D56970968A9 /* NianBoxTheme.swift */; };
-		9FB2033C0BE7F4CAFC146DAEACCC2324 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C07479F04A0CA3222686E2C218C143CB /* SettingsView.swift */; };
-		A6CDD614CC948F0DF59A726DCC1CB972 /* NianBoxStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D7A191FBD7C0AAB4AA18147CCF3A4B /* NianBoxStyle.swift */; };
-		B3E50F6019CD57F679B6D78AF132A934 /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6296B77E23C92EFB61F08FB7A38B4238 /* TestSupport.swift */; };
-		B7C1567BED1C16B2B3E0EB19BF5BA43D /* CornerHoverMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559ED0E9F9E71B6D72257B9466031C5E /* CornerHoverMonitor.swift */; };
-		C0B11228BEF0628A2EC63C8441D4BB6B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EAC1245F23C2B7C338014E7AE23818 /* AppDelegate.swift */; };
-		CB63DE8255CA7D160C16C31B79F96253 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15E19822DEA9D67DCE11CD2744DDE02 /* MenuBarView.swift */; };
-		CC98E507DDA941E90DAD075588BF61C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 932314962603CD47804717867E434437 /* PrivacyInfo.xcprivacy */; };
-		D2ED733D0CF7502F267E9A6EFDEFC428 /* SyncEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4165F3E25A071B255F028C268E0B59A /* SyncEngineTests.swift */; };
-		D5E33A093F5AF850B8FC5103CED0A11A /* TaskActionsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F396229465A5651D3AE9768358438B /* TaskActionsMenu.swift */; };
+		3914B9FA49D577FECD7F043DA9A36BA1 /* SyncRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D25A3827BDBAC508D03511327090FF /* SyncRecord.swift */; };
+		3F30A499FBEE98A7F70C4CC0478DE489 /* PanelUIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF346CBF5E3EC4FE3953238846F510F /* PanelUIState.swift */; };
+		3FEEE5AEEC163695B3470F2B94CDD52C /* NianBoxTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7247A4C1DA6784E3B4A71706F1D3E234 /* NianBoxTheme.swift */; };
+		4696AAA24AEBE73DB6BE2538BC9B26E1 /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7931487D33AD8FD96C81FBC5EC09A65D /* TaskRowView.swift */; };
+		4970FD7EB15F8CA16402DD0D510C0BED /* CornerHoverStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDACA3E7C13C1D9B672E43573A6CF2E /* CornerHoverStateMachine.swift */; };
+		4A1F99BF1E000E8A36159FA2F9A34A71 /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402A1894A01358670D429F502453808D /* GlobalHotKey.swift */; };
+		4C68EA894C8E2F1569A75407302EA2D3 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */; };
+		4C8F58E6CEAF694A2EC04DB7B7A09E96 /* TaskActionsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966AB4AF6EBA6E5EDAD821E92A8B31C8 /* TaskActionsMenu.swift */; };
+		5190CCD1A7844F85BD37E7E326E8D8F0 /* TaskStore+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E5CBF6058D948157397F3C5D7FD2E7 /* TaskStore+Sync.swift */; };
+		53A54EFFD202202B76224EFE3392F55B /* CornerHoverMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0441312CC723B93C485F0D11100A7F /* CornerHoverMonitor.swift */; };
+		59B29D80FC81E16D6AF7DB164B2B712D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D45F9F3D4A4F4FE7299AE33FA5D10E54 /* Assets.xcassets */; };
+		64E3034723D3A7F6D9FA4CD6CB9FBE83 /* MenuBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C416E5CFD759F352E1CE67E4396E4B32 /* MenuBarIconRenderer.swift */; };
+		6C45BA7B890F60E6B007E92A985E0FFB /* TaskSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902C2ED7A540BA52E3C69C04C68B5FB3 /* TaskSectionView.swift */; };
+		768C9721DB290520FCC2F9B00247E095 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57FAB36C9B5E702FAD5254F80A073EE5 /* AppDelegate.swift */; };
+		82455011AE445571B43F1B1B39C98BE1 /* TaskComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BA3DB44B9AAB39BC7A67AE953AB2C9 /* TaskComposerView.swift */; };
+		88EC30F8BE469D5E4FF26E41EBDF175D /* TaskStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD63820A25112487C4ABE69E8E75A7C9 /* TaskStore.swift */; };
+		8BC53FDB7ADDE63BCA1DEC3615435280 /* PeekPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3369313CDB28BA7F8DDC2F8A3F20F1D /* PeekPanelView.swift */; };
+		8C5D9CBB314B571CA0E59F02083583DD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */; };
+		8CD3AA5F74912C228E5C0A9DE46DE1A4 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A4A55FA0BA44F28F8EE7718F9662BA /* PersistenceController.swift */; };
+		936303E83AFF4AF4D7847B14F78D281C /* CornerPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15656BB269A6548DD14E68CFBF106A5B /* CornerPicker.swift */; };
+		9859A1700FE1B914E52AF31539D8B08F /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7BA9D865CF9641FB29F03489F0FAC5 /* AppCoordinator.swift */; };
+		9A434432ECD9783B0D7839BE325A54B0 /* CornerHoverStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A57798D0F056BE769CE278DAAF6CD1 /* CornerHoverStateMachineTests.swift */; };
+		ABC5336817F3583CEC16108C3447AF23 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E20D84653B4E66E70D27E53AF58A16 /* LoginItemService.swift */; };
+		ADB83AB6405FD853926CF4DF278140FA /* MenuBarLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E4A56DA89AE3FC87DE1890D4F4B81F5 /* MenuBarLifecycleTests.swift */; };
+		AE979C3F01FA0506FF7D780A962FDB03 /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F24E772167086ABDA6C3490D7E2A941 /* ShortcutRecorder.swift */; };
+		B20091D32051E4F5A64879CE3C4DE571 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B277D33347F188DA78F20DF4E9C039CC /* SettingsWindowController.swift */; };
+		B2A2DD6FDE61A24AE89D0EA288C2C257 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D22F414C979C59EBB56328EF20633DA /* AppSettings.swift */; };
+		B310CB538E7588304F01BCA73184A60F /* ServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E942B79739FE781B6CBC894AD1832C /* ServerClient.swift */; };
+		B3E92CCDFF2EAB33DDD800F12E374226 /* ServerTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B2B654F67361C3C317F42F2BB0C00BA /* ServerTokenStore.swift */; };
+		B9F84779EEB98D4FD85D577E98187C96 /* SyncTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 609B2D689476DA3D0E400E6EAC396552 /* SyncTypes.swift */; };
+		C6162E5A28D8196A9C6523DF308BD3C7 /* MenuBarLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF6910D02428B94D3FC38167014B9E5 /* MenuBarLifecycle.swift */; };
 		D602762E20E546B862520FD31B52EE55 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */; };
-		D7DEAC6CBB0B604CDED9244DA067D26C /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9B77FEFD9C21BC69143F03C00D72B /* TaskItem.swift */; };
-		E7C1372DCB833F7477F89A7D2B1EB311 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4039386135FEADD0BE3F70593FC2C472 /* SettingsWindowController.swift */; };
-		F6A647ECDF371B41C809D305A062B2A4 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61304ECFF4C9315AA45418A4D1598495 /* SyncEngine.swift */; };
-		FB97C86A69B5686676D7215927A298B2 /* TaskComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BDF6FA0E37E988A63EE562D51F1F66 /* TaskComposerView.swift */; };
-		FC403F7FF73D75B89B018A6120B60CAB /* SyncRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56EC9247381431F0267C3157F065E716 /* SyncRecord.swift */; };
-		FCB840B05BEDF002675566B7F9CAD84F /* ServerTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E690A8EA92955676587BCD80126663B7 /* ServerTokenStore.swift */; };
+		E35A2016998F9498063E244657607528 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 23BD6BB6C26D51C7D1C7DB4BD9C60B22 /* PrivacyInfo.xcprivacy */; };
+		E4A84D5CD7E4B8AF2938DE2E6EAD7BED /* TaskDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAC064A1DE442A8A57384934C2AE649 /* TaskDragPayload.swift */; };
+		E8EF8803F0301691FF3CE1BB590F7745 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61DA5726A37B670B35A8B2983B8766E5 /* MenuBarView.swift */; };
+		EDD593CA4C41A48496EBFACFE72862F5 /* TaskStatusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D05A338094839FDDE62D31127925E795 /* TaskStatusButton.swift */; };
+		F34F23667B43971B2200C1A33D353D29 /* NianBoxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A07C0462423893ECD4FA7F39D41D933 /* NianBoxApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,82 +66,77 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = EEADF100A0DF325472679559F714DE14 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5C2DA65F643DA0CD769E7982A0A947D2;
+			remoteGlobalIDString = 5561128C9963D8A86D974B6239C87A44;
 			remoteInfo = NianBox;
 		};
-		9CC7D888DB8EDB402746551BA4062F89 /* PBXContainerItemProxy */ = {
+		F5EC9087DF3CEAC8F23F2C40742343AA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EEADF100A0DF325472679559F714DE14 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5C2DA65F643DA0CD769E7982A0A947D2;
+			remoteGlobalIDString = 5561128C9963D8A86D974B6239C87A44;
 			remoteInfo = NianBox;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		12C50EC0207F53150A50F94BEF189515 /* TaskStatusButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskStatusButton.swift; path = Views/Panel/TaskStatusButton.swift; sourceTree = "<group>"; };
-		130261DCC202DD16FA7986E5200FBDD7 /* PersistenceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PersistenceController.swift; path = Services/PersistenceController.swift; sourceTree = "<group>"; };
-		19429892456D0586EA17BA237F0E4FD7 /* ServerClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerClient.swift; path = Services/ServerClient.swift; sourceTree = "<group>"; };
-		27BDF6FA0E37E988A63EE562D51F1F66 /* TaskComposerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskComposerView.swift; path = Views/Panel/TaskComposerView.swift; sourceTree = "<group>"; };
-		30E43029E82432968924FDE7F311351E /* ShortcutRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShortcutRecorder.swift; path = Views/Settings/ShortcutRecorder.swift; sourceTree = "<group>"; };
-		33A50C0CC08BEE156288AF243F8AD6C0 /* TaskSectionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskSectionView.swift; path = Views/Panel/TaskSectionView.swift; sourceTree = "<group>"; };
-		340AF24EFC90EB999781ECCC33ED88E8 /* AppCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppCoordinator.swift; path = App/AppCoordinator.swift; sourceTree = "<group>"; };
-		4039386135FEADD0BE3F70593FC2C472 /* SettingsWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsWindowController.swift; path = Window/SettingsWindowController.swift; sourceTree = "<group>"; };
-		4169F2E88F1DF48C273EA418CE482FCF /* QuickCaptureShortcut.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickCaptureShortcut.swift; path = Models/QuickCaptureShortcut.swift; sourceTree = "<group>"; };
-		433E49C2B74EC8F8E09D2E5422E1ADDE /* TaskStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskStore.swift; path = Services/TaskStore.swift; sourceTree = "<group>"; };
-		43F9D081F9FCF926CF0056C84104A45B /* AppSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Services/AppSettings.swift; sourceTree = "<group>"; };
-		46FB3BB16BA60D2930BB751C91810EB3 /* PanelGeometryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PanelGeometryTests.swift; sourceTree = "<group>"; };
+		085F42C3485D5CB20C78BD6C583EF789 /* QuickCaptureShortcut.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickCaptureShortcut.swift; path = Models/QuickCaptureShortcut.swift; sourceTree = "<group>"; };
+		0A07C0462423893ECD4FA7F39D41D933 /* NianBoxApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxApp.swift; path = App/NianBoxApp.swift; sourceTree = "<group>"; };
+		0CEE1E44D0128F8599F65599BBC33182 /* TaskStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TaskStoreTests.swift; sourceTree = "<group>"; };
+		15656BB269A6548DD14E68CFBF106A5B /* CornerPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerPicker.swift; path = Views/Settings/CornerPicker.swift; sourceTree = "<group>"; };
+		1CBB3A8A8B74350A7344E46980CE6309 /* NianBoxStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxStyle.swift; path = Design/NianBoxStyle.swift; sourceTree = "<group>"; };
+		1E0441312CC723B93C485F0D11100A7F /* CornerHoverMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerHoverMonitor.swift; path = Services/CornerHoverMonitor.swift; sourceTree = "<group>"; };
+		1E0B20B32B0DA69F8FBD719F59B49CBF /* PeekPanelController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanelController.swift; path = Window/PeekPanelController.swift; sourceTree = "<group>"; };
+		205A61EC0E360BD74AEA4274DEE31381 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/Settings/SettingsView.swift; sourceTree = "<group>"; };
+		23BD6BB6C26D51C7D1C7DB4BD9C60B22 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		28C26C77CA4B2924F2EF8304E19F4165 /* TaskTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskTypes.swift; path = Models/TaskTypes.swift; sourceTree = "<group>"; };
+		2B2B654F67361C3C317F42F2BB0C00BA /* ServerTokenStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerTokenStore.swift; path = Services/ServerTokenStore.swift; sourceTree = "<group>"; };
+		38E5CBF6058D948157397F3C5D7FD2E7 /* TaskStore+Sync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "TaskStore+Sync.swift"; path = "Services/TaskStore+Sync.swift"; sourceTree = "<group>"; };
+		402A1894A01358670D429F502453808D /* GlobalHotKey.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlobalHotKey.swift; path = Services/GlobalHotKey.swift; sourceTree = "<group>"; };
+		43A4A55FA0BA44F28F8EE7718F9662BA /* PersistenceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PersistenceController.swift; path = Services/PersistenceController.swift; sourceTree = "<group>"; };
 		4EBF9589C1912BA33853A33DB1E72D15 /* NianBoxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NianBoxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		532D9744CC327E3512750216816FEF0A /* TaskStore+Sync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "TaskStore+Sync.swift"; path = "Services/TaskStore+Sync.swift"; sourceTree = "<group>"; };
-		559ED0E9F9E71B6D72257B9466031C5E /* CornerHoverMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerHoverMonitor.swift; path = Services/CornerHoverMonitor.swift; sourceTree = "<group>"; };
-		560B5DB7260EE4A109E55340E609824D /* CornerHoverStateMachine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerHoverStateMachine.swift; path = Services/CornerHoverStateMachine.swift; sourceTree = "<group>"; };
-		56EC9247381431F0267C3157F065E716 /* SyncRecord.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncRecord.swift; path = Models/SyncRecord.swift; sourceTree = "<group>"; };
-		61304ECFF4C9315AA45418A4D1598495 /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = Services/SyncEngine.swift; sourceTree = "<group>"; };
-		6296B77E23C92EFB61F08FB7A38B4238 /* TestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
-		68F396229465A5651D3AE9768358438B /* TaskActionsMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskActionsMenu.swift; path = Design/TaskActionsMenu.swift; sourceTree = "<group>"; };
-		703A565561C7F46B8950CAE46018E3CC /* PanelGeometry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PanelGeometry.swift; path = Services/PanelGeometry.swift; sourceTree = "<group>"; };
-		71C3E1265F82D9EE88E9FA84068AF9C9 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
-		74E5833BFCED9EDBA8E593B2EF0013F9 /* PeekPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanel.swift; path = Window/PeekPanel.swift; sourceTree = "<group>"; };
-		8EFD5CB514043B04688E915FDE64CBB8 /* NianBox.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = NianBox.entitlements; sourceTree = "<group>"; };
-		932314962603CD47804717867E434437 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		956BA481F49E43E15FD1C4336E6A119E /* PeekPanelView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanelView.swift; path = Views/Panel/PeekPanelView.swift; sourceTree = "<group>"; };
-		A0706A32248ED6FA69AB152782651931 /* TaskDragPayload.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskDragPayload.swift; path = Models/TaskDragPayload.swift; sourceTree = "<group>"; };
+		57FAB36C9B5E702FAD5254F80A073EE5 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = App/AppDelegate.swift; sourceTree = "<group>"; };
+		58E942B79739FE781B6CBC894AD1832C /* ServerClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerClient.swift; path = Services/ServerClient.swift; sourceTree = "<group>"; };
+		59A57798D0F056BE769CE278DAAF6CD1 /* CornerHoverStateMachineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CornerHoverStateMachineTests.swift; sourceTree = "<group>"; };
+		5E5148669CB706C1BC64028AB3684247 /* TaskItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskItem.swift; path = Models/TaskItem.swift; sourceTree = "<group>"; };
+		5EDACA3E7C13C1D9B672E43573A6CF2E /* CornerHoverStateMachine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerHoverStateMachine.swift; path = Services/CornerHoverStateMachine.swift; sourceTree = "<group>"; };
+		609B2D689476DA3D0E400E6EAC396552 /* SyncTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncTypes.swift; path = Services/SyncTypes.swift; sourceTree = "<group>"; };
+		61DA5726A37B670B35A8B2983B8766E5 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Views/MenuBarView.swift; sourceTree = "<group>"; };
+		6D22F414C979C59EBB56328EF20633DA /* AppSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Services/AppSettings.swift; sourceTree = "<group>"; };
+		719D16C056DAFDD47C0E5BA169CD8A2C /* NianBox.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = NianBox.entitlements; sourceTree = "<group>"; };
+		7247A4C1DA6784E3B4A71706F1D3E234 /* NianBoxTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxTheme.swift; path = Design/NianBoxTheme.swift; sourceTree = "<group>"; };
+		751865A454C060674A1B258487B011C1 /* PanelGeometry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PanelGeometry.swift; path = Services/PanelGeometry.swift; sourceTree = "<group>"; };
+		7931487D33AD8FD96C81FBC5EC09A65D /* TaskRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskRowView.swift; path = Views/Panel/TaskRowView.swift; sourceTree = "<group>"; };
+		8E4A56DA89AE3FC87DE1890D4F4B81F5 /* MenuBarLifecycleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarLifecycleTests.swift; sourceTree = "<group>"; };
+		902C2ED7A540BA52E3C69C04C68B5FB3 /* TaskSectionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskSectionView.swift; path = Views/Panel/TaskSectionView.swift; sourceTree = "<group>"; };
+		966AB4AF6EBA6E5EDAD821E92A8B31C8 /* TaskActionsMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskActionsMenu.swift; path = Design/TaskActionsMenu.swift; sourceTree = "<group>"; };
+		982A90C51850B1905118920971638D40 /* PanelGeometryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PanelGeometryTests.swift; sourceTree = "<group>"; };
+		9AAC064A1DE442A8A57384934C2AE649 /* TaskDragPayload.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskDragPayload.swift; path = Models/TaskDragPayload.swift; sourceTree = "<group>"; };
+		9F24E772167086ABDA6C3490D7E2A941 /* ShortcutRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShortcutRecorder.swift; path = Views/Settings/ShortcutRecorder.swift; sourceTree = "<group>"; };
+		A3369313CDB28BA7F8DDC2F8A3F20F1D /* PeekPanelView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanelView.swift; path = Views/Panel/PeekPanelView.swift; sourceTree = "<group>"; };
 		A49F2F99BC2F46B0632BA877706B4BCC /* NianBoxUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NianBoxUITests.swift; sourceTree = "<group>"; };
-		A9F8A0541AA143A1CA598D56970968A9 /* NianBoxTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxTheme.swift; path = Design/NianBoxTheme.swift; sourceTree = "<group>"; };
-		ABE7944310605341BEDEE613309F0F2E /* PanelUIState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PanelUIState.swift; path = Window/PanelUIState.swift; sourceTree = "<group>"; };
+		A9B679C6E048488E96EB41D2A52527A1 /* TestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		AC7CD005D9AA4C8ED006A21E32C4F1F7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		B06876BCF212BF72D4777D479D05B6EB /* NianBoxApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxApp.swift; path = App/NianBoxApp.swift; sourceTree = "<group>"; };
-		B3EAC1245F23C2B7C338014E7AE23818 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = App/AppDelegate.swift; sourceTree = "<group>"; };
+		AD7BA9D865CF9641FB29F03489F0FAC5 /* AppCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppCoordinator.swift; path = App/AppCoordinator.swift; sourceTree = "<group>"; };
+		AF6771AA77E4AAB506D52696C0CA543B /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = Services/SyncEngine.swift; sourceTree = "<group>"; };
+		B277D33347F188DA78F20DF4E9C039CC /* SettingsWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsWindowController.swift; path = Window/SettingsWindowController.swift; sourceTree = "<group>"; };
+		B437AE8F479B2A8F4E1320FDE36D88B2 /* PeekPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanel.swift; path = Window/PeekPanel.swift; sourceTree = "<group>"; };
+		B6BA3DB44B9AAB39BC7A67AE953AB2C9 /* TaskComposerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskComposerView.swift; path = Views/Panel/TaskComposerView.swift; sourceTree = "<group>"; };
+		B6E20D84653B4E66E70D27E53AF58A16 /* LoginItemService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginItemService.swift; path = Services/LoginItemService.swift; sourceTree = "<group>"; };
 		B72CF7DDE55632D56066F7D3E67B5E19 /* NianBoxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NianBoxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BA335EE2F1FF8D51A2A4ACA6C250F836 /* NianBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NianBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C07479F04A0CA3222686E2C218C143CB /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/Settings/SettingsView.swift; sourceTree = "<group>"; };
-		C15E19822DEA9D67DCE11CD2744DDE02 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Views/MenuBarView.swift; sourceTree = "<group>"; };
-		C4165F3E25A071B255F028C268E0B59A /* SyncEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncEngineTests.swift; sourceTree = "<group>"; };
-		C7B00EFAF4D2099FC206FCBA218B1AD6 /* CornerHoverStateMachineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CornerHoverStateMachineTests.swift; sourceTree = "<group>"; };
-		C7EE8F3E279F6F0757C703E316B25A4A /* CornerPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CornerPicker.swift; path = Views/Settings/CornerPicker.swift; sourceTree = "<group>"; };
-		CEE9B77FEFD9C21BC69143F03C00D72B /* TaskItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskItem.swift; path = Models/TaskItem.swift; sourceTree = "<group>"; };
-		D064AE3050C1E265DF3A3050A4AE0B1B /* SyncTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncTypes.swift; path = Services/SyncTypes.swift; sourceTree = "<group>"; };
-		D6A2A65E5B64105E72F7F1BA8B11FFE4 /* TaskTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskTypes.swift; path = Models/TaskTypes.swift; sourceTree = "<group>"; };
-		E0B5F4855A486423FD5AD5C7C7F8765C /* GlobalHotKey.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GlobalHotKey.swift; path = Services/GlobalHotKey.swift; sourceTree = "<group>"; };
-		E3D7A191FBD7C0AAB4AA18147CCF3A4B /* NianBoxStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NianBoxStyle.swift; path = Design/NianBoxStyle.swift; sourceTree = "<group>"; };
-		E58989A4BEE8D535FDB184D848606889 /* LoginItemService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginItemService.swift; path = Services/LoginItemService.swift; sourceTree = "<group>"; };
-		E690A8EA92955676587BCD80126663B7 /* ServerTokenStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerTokenStore.swift; path = Services/ServerTokenStore.swift; sourceTree = "<group>"; };
-		EEBF7F91688206A785AF485774509BB4 /* TaskRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskRowView.swift; path = Views/Panel/TaskRowView.swift; sourceTree = "<group>"; };
-		F67BE900C4B8E5502CCBF15577A04BB3 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F93FF01EBDE5FBB7861DB50082A0889E /* PeekPanelController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PeekPanelController.swift; path = Window/PeekPanelController.swift; sourceTree = "<group>"; };
-		FAB1A6EBD7082B789E5F5ACED526495E /* TaskStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TaskStoreTests.swift; sourceTree = "<group>"; };
-		FD6539CCFD16A676AA71758BCD209318 /* ShortcutSettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShortcutSettingsTests.swift; sourceTree = "<group>"; };
+		C416E5CFD759F352E1CE67E4396E4B32 /* MenuBarIconRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarIconRenderer.swift; path = Design/MenuBarIconRenderer.swift; sourceTree = "<group>"; };
+		CC9F361184BAD6822B3195835E48E5BF /* ShortcutSettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShortcutSettingsTests.swift; sourceTree = "<group>"; };
+		D05A338094839FDDE62D31127925E795 /* TaskStatusButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskStatusButton.swift; path = Views/Panel/TaskStatusButton.swift; sourceTree = "<group>"; };
+		D45F9F3D4A4F4FE7299AE33FA5D10E54 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		DA17928CE82B76E069B763B774277525 /* SyncEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncEngineTests.swift; sourceTree = "<group>"; };
+		DAF6910D02428B94D3FC38167014B9E5 /* MenuBarLifecycle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarLifecycle.swift; path = Services/MenuBarLifecycle.swift; sourceTree = "<group>"; };
+		DD63820A25112487C4ABE69E8E75A7C9 /* TaskStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskStore.swift; path = Services/TaskStore.swift; sourceTree = "<group>"; };
+		E5D25A3827BDBAC508D03511327090FF /* SyncRecord.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncRecord.swift; path = Models/SyncRecord.swift; sourceTree = "<group>"; };
+		FEF346CBF5E3EC4FE3953238846F510F /* PanelUIState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PanelUIState.swift; path = Window/PanelUIState.swift; sourceTree = "<group>"; };
+		FFDDF342260375D6330EF99E9710F4CD /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		280D995EA826CCF697C998F4576824D9 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6073796F5818442465D17BFF183CDCC7 /* Cocoa.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6791A923EE690E7136D611ED754B6E32 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -147,24 +145,83 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		73EB57069EC67EF2DDE63DB9C88233CB /* Frameworks */ = {
+		C3B29F8ABFFE59D08AE91733EFC32E1B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				941433B599F2BC20B0B84C19C34A1AA0 /* Cocoa.framework in Frameworks */,
+				8C5D9CBB314B571CA0E59F02083583DD /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F90316AD0D72C81CF465268E2649EE45 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C68EA894C8E2F1569A75407302EA2D3 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0E293503D727E9C13EAD63C973F1604D /* NianBox */ = {
+			isa = PBXGroup;
+			children = (
+				AD7BA9D865CF9641FB29F03489F0FAC5 /* AppCoordinator.swift */,
+				57FAB36C9B5E702FAD5254F80A073EE5 /* AppDelegate.swift */,
+				0A07C0462423893ECD4FA7F39D41D933 /* NianBoxApp.swift */,
+				C416E5CFD759F352E1CE67E4396E4B32 /* MenuBarIconRenderer.swift */,
+				1CBB3A8A8B74350A7344E46980CE6309 /* NianBoxStyle.swift */,
+				7247A4C1DA6784E3B4A71706F1D3E234 /* NianBoxTheme.swift */,
+				966AB4AF6EBA6E5EDAD821E92A8B31C8 /* TaskActionsMenu.swift */,
+				085F42C3485D5CB20C78BD6C583EF789 /* QuickCaptureShortcut.swift */,
+				E5D25A3827BDBAC508D03511327090FF /* SyncRecord.swift */,
+				9AAC064A1DE442A8A57384934C2AE649 /* TaskDragPayload.swift */,
+				5E5148669CB706C1BC64028AB3684247 /* TaskItem.swift */,
+				28C26C77CA4B2924F2EF8304E19F4165 /* TaskTypes.swift */,
+				6D22F414C979C59EBB56328EF20633DA /* AppSettings.swift */,
+				1E0441312CC723B93C485F0D11100A7F /* CornerHoverMonitor.swift */,
+				5EDACA3E7C13C1D9B672E43573A6CF2E /* CornerHoverStateMachine.swift */,
+				402A1894A01358670D429F502453808D /* GlobalHotKey.swift */,
+				B6E20D84653B4E66E70D27E53AF58A16 /* LoginItemService.swift */,
+				DAF6910D02428B94D3FC38167014B9E5 /* MenuBarLifecycle.swift */,
+				751865A454C060674A1B258487B011C1 /* PanelGeometry.swift */,
+				43A4A55FA0BA44F28F8EE7718F9662BA /* PersistenceController.swift */,
+				58E942B79739FE781B6CBC894AD1832C /* ServerClient.swift */,
+				2B2B654F67361C3C317F42F2BB0C00BA /* ServerTokenStore.swift */,
+				AF6771AA77E4AAB506D52696C0CA543B /* SyncEngine.swift */,
+				609B2D689476DA3D0E400E6EAC396552 /* SyncTypes.swift */,
+				38E5CBF6058D948157397F3C5D7FD2E7 /* TaskStore+Sync.swift */,
+				DD63820A25112487C4ABE69E8E75A7C9 /* TaskStore.swift */,
+				61DA5726A37B670B35A8B2983B8766E5 /* MenuBarView.swift */,
+				A3369313CDB28BA7F8DDC2F8A3F20F1D /* PeekPanelView.swift */,
+				B6BA3DB44B9AAB39BC7A67AE953AB2C9 /* TaskComposerView.swift */,
+				7931487D33AD8FD96C81FBC5EC09A65D /* TaskRowView.swift */,
+				902C2ED7A540BA52E3C69C04C68B5FB3 /* TaskSectionView.swift */,
+				D05A338094839FDDE62D31127925E795 /* TaskStatusButton.swift */,
+				15656BB269A6548DD14E68CFBF106A5B /* CornerPicker.swift */,
+				205A61EC0E360BD74AEA4274DEE31381 /* SettingsView.swift */,
+				9F24E772167086ABDA6C3490D7E2A941 /* ShortcutRecorder.swift */,
+				FEF346CBF5E3EC4FE3953238846F510F /* PanelUIState.swift */,
+				B437AE8F479B2A8F4E1320FDE36D88B2 /* PeekPanel.swift */,
+				1E0B20B32B0DA69F8FBD719F59B49CBF /* PeekPanelController.swift */,
+				B277D33347F188DA78F20DF4E9C039CC /* SettingsWindowController.swift */,
+				D45F9F3D4A4F4FE7299AE33FA5D10E54 /* Assets.xcassets */,
+				23BD6BB6C26D51C7D1C7DB4BD9C60B22 /* PrivacyInfo.xcprivacy */,
+				719D16C056DAFDD47C0E5BA169CD8A2C /* NianBox.entitlements */,
+				FFDDF342260375D6330EF99E9710F4CD /* Info.plist */,
+			);
+			name = NianBox;
+			path = NianBox;
+			sourceTree = "<group>";
+		};
 		1F0E506D48414896495AF6B99FF68CB5 = {
 			isa = PBXGroup;
 			children = (
 				37E35BD2E97FFE81F0B8ECE101D67D80 /* Products */,
 				D6506EC873514639787AD7C145112CDF /* Frameworks */,
-				E06B7E304234E89AE65FBAA329E60152 /* NianBox */,
-				E716E9ECF29452AF70DE74E7F318ACE6 /* NianBoxTests */,
+				0E293503D727E9C13EAD63C973F1604D /* NianBox */,
+				B3BC3FA51FD5AFFFB87EEFC1F4D84327 /* NianBoxTests */,
 				886DC22330E239573BC010930CE5FABF /* NianBoxUITests */,
 			);
 			sourceTree = "<group>";
@@ -196,6 +253,21 @@
 			path = NianBoxUITests;
 			sourceTree = "<group>";
 		};
+		B3BC3FA51FD5AFFFB87EEFC1F4D84327 /* NianBoxTests */ = {
+			isa = PBXGroup;
+			children = (
+				59A57798D0F056BE769CE278DAAF6CD1 /* CornerHoverStateMachineTests.swift */,
+				8E4A56DA89AE3FC87DE1890D4F4B81F5 /* MenuBarLifecycleTests.swift */,
+				982A90C51850B1905118920971638D40 /* PanelGeometryTests.swift */,
+				CC9F361184BAD6822B3195835E48E5BF /* ShortcutSettingsTests.swift */,
+				DA17928CE82B76E069B763B774277525 /* SyncEngineTests.swift */,
+				0CEE1E44D0128F8599F65599BBC33182 /* TaskStoreTests.swift */,
+				A9B679C6E048488E96EB41D2A52527A1 /* TestSupport.swift */,
+			);
+			name = NianBoxTests;
+			path = NianBoxTests;
+			sourceTree = "<group>";
+		};
 		D6506EC873514639787AD7C145112CDF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -204,97 +276,34 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		E06B7E304234E89AE65FBAA329E60152 /* NianBox */ = {
-			isa = PBXGroup;
-			children = (
-				340AF24EFC90EB999781ECCC33ED88E8 /* AppCoordinator.swift */,
-				B3EAC1245F23C2B7C338014E7AE23818 /* AppDelegate.swift */,
-				B06876BCF212BF72D4777D479D05B6EB /* NianBoxApp.swift */,
-				E3D7A191FBD7C0AAB4AA18147CCF3A4B /* NianBoxStyle.swift */,
-				A9F8A0541AA143A1CA598D56970968A9 /* NianBoxTheme.swift */,
-				68F396229465A5651D3AE9768358438B /* TaskActionsMenu.swift */,
-				4169F2E88F1DF48C273EA418CE482FCF /* QuickCaptureShortcut.swift */,
-				56EC9247381431F0267C3157F065E716 /* SyncRecord.swift */,
-				A0706A32248ED6FA69AB152782651931 /* TaskDragPayload.swift */,
-				CEE9B77FEFD9C21BC69143F03C00D72B /* TaskItem.swift */,
-				D6A2A65E5B64105E72F7F1BA8B11FFE4 /* TaskTypes.swift */,
-				43F9D081F9FCF926CF0056C84104A45B /* AppSettings.swift */,
-				559ED0E9F9E71B6D72257B9466031C5E /* CornerHoverMonitor.swift */,
-				560B5DB7260EE4A109E55340E609824D /* CornerHoverStateMachine.swift */,
-				E0B5F4855A486423FD5AD5C7C7F8765C /* GlobalHotKey.swift */,
-				E58989A4BEE8D535FDB184D848606889 /* LoginItemService.swift */,
-				703A565561C7F46B8950CAE46018E3CC /* PanelGeometry.swift */,
-				130261DCC202DD16FA7986E5200FBDD7 /* PersistenceController.swift */,
-				19429892456D0586EA17BA237F0E4FD7 /* ServerClient.swift */,
-				E690A8EA92955676587BCD80126663B7 /* ServerTokenStore.swift */,
-				61304ECFF4C9315AA45418A4D1598495 /* SyncEngine.swift */,
-				D064AE3050C1E265DF3A3050A4AE0B1B /* SyncTypes.swift */,
-				532D9744CC327E3512750216816FEF0A /* TaskStore+Sync.swift */,
-				433E49C2B74EC8F8E09D2E5422E1ADDE /* TaskStore.swift */,
-				C15E19822DEA9D67DCE11CD2744DDE02 /* MenuBarView.swift */,
-				956BA481F49E43E15FD1C4336E6A119E /* PeekPanelView.swift */,
-				27BDF6FA0E37E988A63EE562D51F1F66 /* TaskComposerView.swift */,
-				EEBF7F91688206A785AF485774509BB4 /* TaskRowView.swift */,
-				33A50C0CC08BEE156288AF243F8AD6C0 /* TaskSectionView.swift */,
-				12C50EC0207F53150A50F94BEF189515 /* TaskStatusButton.swift */,
-				C7EE8F3E279F6F0757C703E316B25A4A /* CornerPicker.swift */,
-				C07479F04A0CA3222686E2C218C143CB /* SettingsView.swift */,
-				30E43029E82432968924FDE7F311351E /* ShortcutRecorder.swift */,
-				ABE7944310605341BEDEE613309F0F2E /* PanelUIState.swift */,
-				74E5833BFCED9EDBA8E593B2EF0013F9 /* PeekPanel.swift */,
-				F93FF01EBDE5FBB7861DB50082A0889E /* PeekPanelController.swift */,
-				4039386135FEADD0BE3F70593FC2C472 /* SettingsWindowController.swift */,
-				71C3E1265F82D9EE88E9FA84068AF9C9 /* Assets.xcassets */,
-				932314962603CD47804717867E434437 /* PrivacyInfo.xcprivacy */,
-				8EFD5CB514043B04688E915FDE64CBB8 /* NianBox.entitlements */,
-				F67BE900C4B8E5502CCBF15577A04BB3 /* Info.plist */,
-			);
-			name = NianBox;
-			path = NianBox;
-			sourceTree = "<group>";
-		};
-		E716E9ECF29452AF70DE74E7F318ACE6 /* NianBoxTests */ = {
-			isa = PBXGroup;
-			children = (
-				C7B00EFAF4D2099FC206FCBA218B1AD6 /* CornerHoverStateMachineTests.swift */,
-				46FB3BB16BA60D2930BB751C91810EB3 /* PanelGeometryTests.swift */,
-				FD6539CCFD16A676AA71758BCD209318 /* ShortcutSettingsTests.swift */,
-				C4165F3E25A071B255F028C268E0B59A /* SyncEngineTests.swift */,
-				FAB1A6EBD7082B789E5F5ACED526495E /* TaskStoreTests.swift */,
-				6296B77E23C92EFB61F08FB7A38B4238 /* TestSupport.swift */,
-			);
-			name = NianBoxTests;
-			path = NianBoxTests;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5B790B97FBF694B63DDF9AD254254C9E /* NianBoxTests */ = {
+		4326A578DE3F7EB453566259A6AAF82C /* NianBoxTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 15DA2A2419A3E1ED18FAEAD84C2AE83F /* Build configuration list for PBXNativeTarget "NianBoxTests" */;
+			buildConfigurationList = C16016D64EF9222F7489479F2B7C449B /* Build configuration list for PBXNativeTarget "NianBoxTests" */;
 			buildPhases = (
-				8FFA64E40292937A1AFC649964327E84 /* Sources */,
-				73EB57069EC67EF2DDE63DB9C88233CB /* Frameworks */,
-				6640E4B582CA57CB8150F1664080A5EA /* Resources */,
+				52610C6262285A667DA1EF43F74619AA /* Sources */,
+				C3B29F8ABFFE59D08AE91733EFC32E1B /* Frameworks */,
+				BB7BD191DA971E6BA9816F99E7607011 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				ECC3A84FACCDD0B029094B462D7AE2D6 /* PBXTargetDependency */,
+				323E2DF038941FDF8D78C9E0A45744E4 /* PBXTargetDependency */,
 			);
 			name = NianBoxTests;
 			productName = NianBoxTests;
 			productReference = B72CF7DDE55632D56066F7D3E67B5E19 /* NianBoxTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5C2DA65F643DA0CD769E7982A0A947D2 /* NianBox */ = {
+		5561128C9963D8A86D974B6239C87A44 /* NianBox */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 107DE48325E07FD9BD668FA942173211 /* Build configuration list for PBXNativeTarget "NianBox" */;
+			buildConfigurationList = 854F550215B943E6A7BD01E72D21584C /* Build configuration list for PBXNativeTarget "NianBox" */;
 			buildPhases = (
-				EFB6C2D56AF7F1F539AFC8DF41BC99C6 /* Sources */,
-				280D995EA826CCF697C998F4576824D9 /* Frameworks */,
-				7AE239E010F43E8723B61A6FA11AA387 /* Resources */,
+				54481675C7F54CEBE35A87EF308730F0 /* Sources */,
+				F90316AD0D72C81CF465268E2649EE45 /* Frameworks */,
+				1B6A670902A59541B5D73338C0253FA0 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -345,27 +354,27 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5C2DA65F643DA0CD769E7982A0A947D2 /* NianBox */,
-				5B790B97FBF694B63DDF9AD254254C9E /* NianBoxTests */,
+				5561128C9963D8A86D974B6239C87A44 /* NianBox */,
+				4326A578DE3F7EB453566259A6AAF82C /* NianBoxTests */,
 				AF63AFC2B1C4C31A9E2E4D5663A6CD2A /* NianBoxUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		6640E4B582CA57CB8150F1664080A5EA /* Resources */ = {
+		1B6A670902A59541B5D73338C0253FA0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59B29D80FC81E16D6AF7DB164B2B712D /* Assets.xcassets in Resources */,
+				E35A2016998F9498063E244657607528 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7AE239E010F43E8723B61A6FA11AA387 /* Resources */ = {
+		BB7BD191DA971E6BA9816F99E7607011 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				306230A6AB757CF731FB3ED8A77F5D95 /* Assets.xcassets in Resources */,
-				CC98E507DDA941E90DAD075588BF61C4 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -379,16 +388,63 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		8FFA64E40292937A1AFC649964327E84 /* Sources */ = {
+		52610C6262285A667DA1EF43F74619AA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9471A542EB801ED5D1434C227E852059 /* CornerHoverStateMachineTests.swift in Sources */,
-				5462534E7D660C0692CE17DA5E82C066 /* PanelGeometryTests.swift in Sources */,
-				5D33A893AAF742D2FFF6790442A1FED9 /* ShortcutSettingsTests.swift in Sources */,
-				D2ED733D0CF7502F267E9A6EFDEFC428 /* SyncEngineTests.swift in Sources */,
-				8A93E847BA30326FBAE3F85AA6AA7936 /* TaskStoreTests.swift in Sources */,
-				B3E50F6019CD57F679B6D78AF132A934 /* TestSupport.swift in Sources */,
+				9A434432ECD9783B0D7839BE325A54B0 /* CornerHoverStateMachineTests.swift in Sources */,
+				ADB83AB6405FD853926CF4DF278140FA /* MenuBarLifecycleTests.swift in Sources */,
+				06CB7EA40A42AA92484ECA4A7120ACD4 /* PanelGeometryTests.swift in Sources */,
+				09CDA93F3C766A64D9D87792D780673B /* ShortcutSettingsTests.swift in Sources */,
+				036FB051090E960509634DD0870A5B0A /* SyncEngineTests.swift in Sources */,
+				2AEFAC1CEBA248613BD58F16293330B4 /* TaskStoreTests.swift in Sources */,
+				0A98E763120DDD44D7D91C3353EA7277 /* TestSupport.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		54481675C7F54CEBE35A87EF308730F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9859A1700FE1B914E52AF31539D8B08F /* AppCoordinator.swift in Sources */,
+				768C9721DB290520FCC2F9B00247E095 /* AppDelegate.swift in Sources */,
+				F34F23667B43971B2200C1A33D353D29 /* NianBoxApp.swift in Sources */,
+				64E3034723D3A7F6D9FA4CD6CB9FBE83 /* MenuBarIconRenderer.swift in Sources */,
+				239D64319D0F2BE709BEF591134EFEBC /* NianBoxStyle.swift in Sources */,
+				3FEEE5AEEC163695B3470F2B94CDD52C /* NianBoxTheme.swift in Sources */,
+				4C8F58E6CEAF694A2EC04DB7B7A09E96 /* TaskActionsMenu.swift in Sources */,
+				214FF6DBDEBAACB3CD725F3C8DE05113 /* QuickCaptureShortcut.swift in Sources */,
+				3914B9FA49D577FECD7F043DA9A36BA1 /* SyncRecord.swift in Sources */,
+				E4A84D5CD7E4B8AF2938DE2E6EAD7BED /* TaskDragPayload.swift in Sources */,
+				35E454D01799FCA50C843F91DF52B486 /* TaskItem.swift in Sources */,
+				1F9C2270A30A85466C88758B095DEFEE /* TaskTypes.swift in Sources */,
+				B2A2DD6FDE61A24AE89D0EA288C2C257 /* AppSettings.swift in Sources */,
+				53A54EFFD202202B76224EFE3392F55B /* CornerHoverMonitor.swift in Sources */,
+				4970FD7EB15F8CA16402DD0D510C0BED /* CornerHoverStateMachine.swift in Sources */,
+				4A1F99BF1E000E8A36159FA2F9A34A71 /* GlobalHotKey.swift in Sources */,
+				ABC5336817F3583CEC16108C3447AF23 /* LoginItemService.swift in Sources */,
+				C6162E5A28D8196A9C6523DF308BD3C7 /* MenuBarLifecycle.swift in Sources */,
+				242FC79360DACD25B151A9455C6D296A /* PanelGeometry.swift in Sources */,
+				8CD3AA5F74912C228E5C0A9DE46DE1A4 /* PersistenceController.swift in Sources */,
+				B310CB538E7588304F01BCA73184A60F /* ServerClient.swift in Sources */,
+				B3E92CCDFF2EAB33DDD800F12E374226 /* ServerTokenStore.swift in Sources */,
+				26B464B24E00BC15B8C0D0AC62D9D481 /* SyncEngine.swift in Sources */,
+				B9F84779EEB98D4FD85D577E98187C96 /* SyncTypes.swift in Sources */,
+				5190CCD1A7844F85BD37E7E326E8D8F0 /* TaskStore+Sync.swift in Sources */,
+				88EC30F8BE469D5E4FF26E41EBDF175D /* TaskStore.swift in Sources */,
+				E8EF8803F0301691FF3CE1BB590F7745 /* MenuBarView.swift in Sources */,
+				8BC53FDB7ADDE63BCA1DEC3615435280 /* PeekPanelView.swift in Sources */,
+				82455011AE445571B43F1B1B39C98BE1 /* TaskComposerView.swift in Sources */,
+				4696AAA24AEBE73DB6BE2538BC9B26E1 /* TaskRowView.swift in Sources */,
+				6C45BA7B890F60E6B007E92A985E0FFB /* TaskSectionView.swift in Sources */,
+				EDD593CA4C41A48496EBFACFE72862F5 /* TaskStatusButton.swift in Sources */,
+				936303E83AFF4AF4D7847B14F78D281C /* CornerPicker.swift in Sources */,
+				0691EB9B51FCA120801B4B9D5793257A /* SettingsView.swift in Sources */,
+				AE979C3F01FA0506FF7D780A962FDB03 /* ShortcutRecorder.swift in Sources */,
+				3F30A499FBEE98A7F70C4CC0478DE489 /* PanelUIState.swift in Sources */,
+				0B968FB0597C180278B613E83C42A8CF /* PeekPanel.swift in Sources */,
+				33831C6BF2449CA8E3139645D4978CBE /* PeekPanelController.swift in Sources */,
+				B20091D32051E4F5A64879CE3C4DE571 /* SettingsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,64 +456,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EFB6C2D56AF7F1F539AFC8DF41BC99C6 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				486B43F6B2D638D2F4CDAB74DDC231CC /* AppCoordinator.swift in Sources */,
-				C0B11228BEF0628A2EC63C8441D4BB6B /* AppDelegate.swift in Sources */,
-				0AF6239EC8C2F0ACA96D757D8F1BC0CF /* NianBoxApp.swift in Sources */,
-				A6CDD614CC948F0DF59A726DCC1CB972 /* NianBoxStyle.swift in Sources */,
-				98647F87A6C31F64E87DD4A4073BC3AE /* NianBoxTheme.swift in Sources */,
-				D5E33A093F5AF850B8FC5103CED0A11A /* TaskActionsMenu.swift in Sources */,
-				82E0DB54DD6366A7CA97B12865A62C42 /* QuickCaptureShortcut.swift in Sources */,
-				FC403F7FF73D75B89B018A6120B60CAB /* SyncRecord.swift in Sources */,
-				679D95A420D9E915BD73CEAC60AD17D4 /* TaskDragPayload.swift in Sources */,
-				D7DEAC6CBB0B604CDED9244DA067D26C /* TaskItem.swift in Sources */,
-				646A8D33E68E7928969573775D16DA3F /* TaskTypes.swift in Sources */,
-				935BAA0C566F91045F67911996B7AD9F /* AppSettings.swift in Sources */,
-				B7C1567BED1C16B2B3E0EB19BF5BA43D /* CornerHoverMonitor.swift in Sources */,
-				2D36EBC5A293F554C7976E7F1DE04D54 /* CornerHoverStateMachine.swift in Sources */,
-				551F2134497CAB3DDDEF633530A8A5AD /* GlobalHotKey.swift in Sources */,
-				0429D5908A55B581EB781310A0D129AE /* LoginItemService.swift in Sources */,
-				1B416BE193DE9ABB0479AE656B0846F0 /* PanelGeometry.swift in Sources */,
-				6449F44791CC10060A4183D998D74EB1 /* PersistenceController.swift in Sources */,
-				8ECE1827AEE12848719520F6A75D13EB /* ServerClient.swift in Sources */,
-				FCB840B05BEDF002675566B7F9CAD84F /* ServerTokenStore.swift in Sources */,
-				F6A647ECDF371B41C809D305A062B2A4 /* SyncEngine.swift in Sources */,
-				3FACB4B6B9732A57263881803D66B7C6 /* SyncTypes.swift in Sources */,
-				4FF9B35F28640F0A61129D2181E1872B /* TaskStore+Sync.swift in Sources */,
-				246018C678B89E5EC14D2BB945923F2D /* TaskStore.swift in Sources */,
-				CB63DE8255CA7D160C16C31B79F96253 /* MenuBarView.swift in Sources */,
-				007E932779160E21E7F9A5DA63B56981 /* PeekPanelView.swift in Sources */,
-				FB97C86A69B5686676D7215927A298B2 /* TaskComposerView.swift in Sources */,
-				22690C02F640BF6639935FEFAE8D9231 /* TaskRowView.swift in Sources */,
-				94B9D7F1AB35DDF347BB24C6AFDE984C /* TaskSectionView.swift in Sources */,
-				76381B52D0E029ED752F0548D91689CC /* TaskStatusButton.swift in Sources */,
-				6715D4D111E2632875A0219A210B2211 /* CornerPicker.swift in Sources */,
-				9FB2033C0BE7F4CAFC146DAEACCC2324 /* SettingsView.swift in Sources */,
-				2B5B85AD03D857335A45CB0CF72C5ED0 /* ShortcutRecorder.swift in Sources */,
-				2772325623C606321202FBCDFC11628E /* PanelUIState.swift in Sources */,
-				259CD865243CE0CC90E8975225EF46B0 /* PeekPanel.swift in Sources */,
-				1270BEAF8BC5DD4EA5E0A559EB682FF2 /* PeekPanelController.swift in Sources */,
-				E7C1372DCB833F7477F89A7D2B1EB311 /* SettingsWindowController.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		323E2DF038941FDF8D78C9E0A45744E4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NianBox;
+			target = 5561128C9963D8A86D974B6239C87A44 /* NianBox */;
+			targetProxy = F5EC9087DF3CEAC8F23F2C40742343AA /* PBXContainerItemProxy */;
+		};
 		82E70964AF818D1AEA2C94D01703ED29 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = NianBox;
-			target = 5C2DA65F643DA0CD769E7982A0A947D2 /* NianBox */;
+			target = 5561128C9963D8A86D974B6239C87A44 /* NianBox */;
 			targetProxy = 0D527846AF3EB11743695989C4EF9CF1 /* PBXContainerItemProxy */;
-		};
-		ECC3A84FACCDD0B029094B462D7AE2D6 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = NianBox;
-			target = 5C2DA65F643DA0CD769E7982A0A947D2 /* NianBox */;
-			targetProxy = 9CC7D888DB8EDB402746551BA4062F89 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -539,66 +551,6 @@
 			};
 			name = Local;
 		};
-		2FF3CD158B89A66604C2745111A95B61 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
-				SDKROOT = macosx;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
-			};
-			name = Release;
-		};
-		36427689A28B71C314B48FB9A9108D46 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
-				SDKROOT = macosx;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
-			};
-			name = Debug;
-		};
-		46156335478F7EF72C562F3976E643FB /* Local */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = NianBox/NianBox.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = NianBox/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBox;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Local;
-		};
 		559C3B362A1C126B8BFFFAEF01C19B5B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -613,6 +565,22 @@
 				TEST_TARGET_NAME = NianBox;
 			};
 			name = Release;
+		};
+		5E089C71A89B489F00833637509EF8A6 /* Local */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
+			};
+			name = Local;
 		};
 		6F5E92B2946C5EFFB3306737FF3EE83E /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -629,14 +597,13 @@
 			};
 			name = Debug;
 		};
-		7DB8680F065059796971CD921494FACD /* Release */ = {
+		9E7ADD48E940C99B87B2D25AE7A738A9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NianBox/NianBox.entitlements;
 				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 2;
@@ -656,33 +623,21 @@
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 			};
-			name = Release;
+			name = Debug;
 		};
-		8790AF943E93BD3611FC4E0ECCBAC802 /* Debug */ = {
+		A18B01BA651B662801E726BA0F73EC86 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = NianBox/NianBox.entitlements;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = NianBox/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
+				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBox;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
 			};
 			name = Debug;
 		};
@@ -737,6 +692,51 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		AAACCC7AC1664918271A18C7831F053A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
+			};
+			name = Release;
+		};
+		B2115E3C610698CB1A124C1EBE4B0C3E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NianBox/NianBox.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NianBox/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBox;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -803,51 +803,63 @@
 			};
 			name = Debug;
 		};
-		EEB5CD152B12683778698792ED77249D /* Local */ = {
+		E437E6E6B1EFE2E3FA7639E1D728AA2F /* Local */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NianBox/NianBox.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				GENERATE_INFOPLIST_FILE = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NianBox/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBoxTests;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.nianbox.NianBox;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox";
 			};
 			name = Local;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		107DE48325E07FD9BD668FA942173211 /* Build configuration list for PBXNativeTarget "NianBox" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				7DB8680F065059796971CD921494FACD /* Release */,
-				8790AF943E93BD3611FC4E0ECCBAC802 /* Debug */,
-				46156335478F7EF72C562F3976E643FB /* Local */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		15DA2A2419A3E1ED18FAEAD84C2AE83F /* Build configuration list for PBXNativeTarget "NianBoxTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2FF3CD158B89A66604C2745111A95B61 /* Release */,
-				36427689A28B71C314B48FB9A9108D46 /* Debug */,
-				EEB5CD152B12683778698792ED77249D /* Local */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		4DE2BA39E1DBAE6D0E51553BE58CD68D /* Build configuration list for PBXNativeTarget "NianBoxUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				559C3B362A1C126B8BFFFAEF01C19B5B /* Release */,
 				6F5E92B2946C5EFFB3306737FF3EE83E /* Debug */,
 				0CD2E0D67F10D55F37FCF180808C19AE /* Local */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		854F550215B943E6A7BD01E72D21584C /* Build configuration list for PBXNativeTarget "NianBox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2115E3C610698CB1A124C1EBE4B0C3E /* Release */,
+				9E7ADD48E940C99B87B2D25AE7A738A9 /* Debug */,
+				E437E6E6B1EFE2E3FA7639E1D728AA2F /* Local */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C16016D64EF9222F7489479F2B7C449B /* Build configuration list for PBXNativeTarget "NianBoxTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAACCC7AC1664918271A18C7831F053A /* Release */,
+				A18B01BA651B662801E726BA0F73EC86 /* Debug */,
+				5E089C71A89B489F00833637509EF8A6 /* Local */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

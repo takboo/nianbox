@@ -8,9 +8,10 @@ struct NianBoxApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, settings: coordinator.settings, coordinator: coordinator)
+            MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, settings: coordinator.settings,
+                        uiState: coordinator.uiState, coordinator: coordinator)
         } label: {
-            Image("MenuBarIcon").accessibilityLabel("NianBox")
+            MenuBarIconLabel(lifecycle: coordinator.menuBarLifecycle)
         }
         .menuBarExtraStyle(.menu)
         .commands {
@@ -21,5 +22,16 @@ struct NianBoxApp: App {
                 .keyboardShortcut(",", modifiers: .command)
             }
         }
+    }
+}
+
+private struct MenuBarIconLabel: View {
+    @ObservedObject var lifecycle: MenuBarLifecycle
+
+    var body: some View {
+        Image(nsImage: lifecycle.image)
+            .renderingMode(.template)
+            .accessibilityLabel(lifecycle.accessibilityLabel)
+            .help(lifecycle.accessibilityLabel)
     }
 }

@@ -68,6 +68,15 @@ struct ChangePage: Decodable {
     let cursor: Int64
     let hasMore: Bool
     let serverId: String
+    let cursorDigest: String?
+
+    init(changes: [WireTask], cursor: Int64, hasMore: Bool, serverId: String, cursorDigest: String? = nil) {
+        self.changes = changes
+        self.cursor = cursor
+        self.hasMore = hasMore
+        self.serverId = serverId
+        self.cursorDigest = cursorDigest
+    }
 }
 struct MutationRequest: Codable {
     let mutationId: UUID
@@ -83,14 +92,18 @@ struct ServerRejection: Decodable, Error {
 }
 enum SyncFailure: LocalizedError {
     case message(String)
+    case storage
     var errorDescription: String? {
-        switch self { case let .message(message): return message }
+        switch self {
+        case let .message(message): return message
+        case .storage: return "Cannot save local data. Local changes are retained."
+        }
     }
 }
 
 @MainActor
 protocol SyncTransport {
     var endpoint: String { get }
-    func changes(after: Int64) async throws -> ChangePage
+    func changes(after: Int64, digest: String?) async throws -> ChangePage
     func mutate(_ request: MutationRequest) async throws -> WireTask
 }

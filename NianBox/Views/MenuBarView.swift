@@ -5,6 +5,7 @@ struct MenuBarView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var syncEngine: SyncEngine
     @ObservedObject var settings: AppSettings
+    @ObservedObject var uiState: PanelUIState
     let coordinator: AppCoordinator
 
     var body: some View {
@@ -27,6 +28,11 @@ struct MenuBarView: View {
         }
 
         Text(syncEngine.status).font(.caption).foregroundStyle(.secondary)
+        if uiState.isComposerPresented { Text("Draft open · not yet saved") }
+        if syncEngine.pendingCount > 0 { Text("\(syncEngine.pendingCount) changes waiting to sync") }
+        if syncEngine.blockedCount > 0 { Text("\(syncEngine.blockedCount) blocked changes retained for export") }
+        Button("Sync now") { syncEngine.requestSync() }
+            .disabled(syncEngine.isSyncing || syncEngine.activity == .localOnly)
 
         Button {
             coordinator.openSettings()
