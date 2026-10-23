@@ -1,6 +1,6 @@
 # macOS VM acceptance
 
-Use an isolated macOS desktop for interactive automation. Host build/unit checks remain noninteractive. The current reusable environment belongs to the sibling `dsh-coopanion` project; read that project's `docs/macos-vm-testing.md` before starting it. Its VM data, base image, SSH identity and retention rules remain owned by that project.
+Use an isolated macOS desktop for interactive automation. Host build/unit checks remain noninteractive. The current task-owned environment is documented in the menu lifecycle follow-up below. Earlier runs reused the sibling `dsh-coopanion` environment; read that project's instructions before using its VM, identity or data. Those resources remain owned by that project.
 
 ## Verified environment on 2026-10-23
 
@@ -52,7 +52,7 @@ After retrieval, the generated guest/host Hermes fixture files were removed, the
 
 ## Repeat procedure
 
-1. Check the sibling project's instructions, current VM state, active tests and capacity. Start only the test VM with its existing controller; leave the prepared base alone.
+1. Check the chosen environment's ownership, current VM state, active tests and capacity. Prefer this project's task-owned environment below. When reusing the older sibling environment, read its instructions first. Start only the test VM; leave prepared base images stopped.
 2. Export a clean product commit with `git bundle`, build its Release app and archive it with `ditto`. Transfer them into a new guest `nianbox-testing` directory through the dedicated SSH channel. Verify source, archive, binary signature and executable hashes in the guest.
 3. Transfer the two VM test scripts from the intended source separately if they are newer than the product build. Record their hashes. In the guest, compile and run (choose a fresh output directory):
 
@@ -87,3 +87,42 @@ All six checks passed: capture/status/menu/history, native drag order, long-titl
 Host evidence: `.local/v020-vm-final-evidence/`; guest originals: `~/nianbox-testing/v020-148e609/native-final/`. The report records `sourceDirty: false`. The new `--only CHECK_NAME` option allows targeted driver diagnostics; the final run used no filter. Hermes/phone and network deployment were not rerun by this UI-only follow-up. The SSH-delivered local candidate has no browser-download quarantine, so this installation does not establish a successful Gatekeeper first launch for the published download.
 
 The actual Actions-built DMG was then tested separately under `~/nianbox-testing/v020-github`, with the same clean `148e609` source/probe/controller. All six native checks passed again. Published DMG SHA-256: `6e4f4cc0119852fec134c26a1d59e0c66fab97dcb6a0ead7ec1aa41c7c1c5889`; its executable SHA-256: `39861268f8032a2f4a92e296a0cfb835c292223281c634670a9f61be10b2d8d4`. An anonymous public download was byte-identical to the tested asset. Host raw results: `.local/v020-vm-github-evidence/`. After retrieval, all three known DMG mounts were detached, the temporary candidate Applications copy was removed after verifying its executable identity, and the test VM was returned to stopped. Guest stores and evidence were retained, and no sibling repository source was written.
+
+## Menu lifecycle and consistency follow-up — 2026-10-23
+
+The earlier sibling VM was unavailable locally. With the user's authorization to download and prepare a replacement, a fresh task-owned environment was created:
+
+- Tart 2.41.1: `.local/vm-tools/tart.app/Contents/MacOS/tart`, with `TART_HOME="$PWD/.local/tart"` and `TART_NO_AUTO_PRUNE=1`.
+- Test VM: `nianbox-lifecycle-test`, cloned from `ghcr.io/cirruslabs/macos-sequoia-base@sha256:eee659985b01e4df2a6c0754bd8d25e54969933c43fdcd4edef8bea337b3d354`.
+- macOS 15.7.7 (24G720), arm64 VirtualMac2,1, 2 CPUs, 4096 MiB and one 1440×1080 display; guest Swift 6.1.2 Command Line Tools, no full Xcode.
+- Default NAT with a loopback-only authenticated server reverse forward. Tart host-only networking requires a newer host OS and was not used on macOS 15.7.9.
+- Run flags: `--no-graphics --no-audio --no-clipboard --no-usb-accessories`; no shared directory. Task-local SSH identity and known-hosts files retain strict host-key checks.
+
+The signed Universal Release app and clean source were transferred into `~/nianbox-testing/`. No app was installed on the host or into the guest Applications directory for this run.
+
+| Input | Identity |
+| --- | --- |
+| Clean product source | `013ddcd2f908f09271f04cfde7bcc1e897694c25` |
+| Release executable SHA-256 | `de8e24272eaf06480237655260a5663be794848cb904f0cce39f5cef20e379d4` |
+| Source bundle SHA-256 | `de9d9da50667067a3db84ca4dc2985cd4f918cf2c3a4acb4caea3d03fd965fc1` |
+| App archive SHA-256 | `fd6c87cdfe9acd038276910bbd292c8a67d88868384235b6a350bd8c25970114` |
+| Probe source SHA-256 | `42134be708e4be3687f1f4d9c74477122b9730aa332106d287fb958e5271d9e5` |
+| Committed controller SHA-256 | `ed61a3f5f898b26835e0f240abe5597500176bbe9456a8f2db065e9c453bddab` |
+
+All **eight native acceptance checks passed**: capture/status/menu/completed history, OS drag ordering, Tasks/Backlog draft restoration and successful capture, long-title wrapping, search, default shortcut/corner/disk reopen, configurable shortcut/conflict/cancel/focus-loss/reopen/disable/default restoration, and installed Hermes MCP client → isolated server → guest completion → authenticated REST.
+
+A separate native status-item check also passed. It observed the actual Accessibility title changing from ready to unsaved draft to “Saved to this Mac”, compared the status item's cropped pixels before and after opening the composer, verified exact idle pixels after settling, and opened the real menu. This complements the deterministic host lifecycle tests; it does not establish human recognition accuracy or physical-display animation quality. The supplemental controller is retained as `.local/vm_menu_smoke.py`, SHA-256 `209195a63ef1ad6907214bda4c2584ce1d6d395ce032e89e86a32196f26682fb`.
+
+Host evidence: `.local/vm-acceptance-evidence/`, `.local/vm-menu-evidence/`, `.local/vm-preflight.log` and `.local/vm-evidence-sha256.txt`. Guest originals: `~/nianbox-testing/acceptance-013ddcd/` and `~/nianbox-testing/menu-013ddcd/`. All 39 retrieved evidence/controller/probe files matched guest SHA-256 values. The guest already had Accessibility access; screenshots show a guest sshd-session screen-recording dialog outside the panel. It was left unapproved. No TCC database or host desktop permission was changed.
+
+After acceptance, only the generated host/guest credential fixtures were removed, the loopback tunnel and isolated server were stopped, and `nianbox-lifecycle-test` was stopped. VM disks, base image, synthetic guest history and raw evidence remain available for reuse. Recreate a fresh synthetic Hermes fixture before a network rerun; never reuse a production token.
+
+To restart this environment from the repository root:
+
+```sh
+TART_HOME="$PWD/.local/tart" TART_NO_AUTO_PRUNE=1 \
+  .local/vm-tools/tart.app/Contents/MacOS/tart run nianbox-lifecycle-test \
+  --no-graphics --no-audio --no-clipboard --no-usb-accessories
+```
+
+Discover its current NAT address with the same environment and `tart ip nianbox-lifecycle-test`; do not assume a previous IP. Use the task-local SSH key/known-hosts file, verify new source/app identities and choose fresh result directories as above. Stop the owned test VM after retrieving evidence. Physical input, multiple displays/Spaces, Intel hardware, full XCUITest, VoiceOver use, Gatekeeper first launch and always-on deployment remain separate acceptance boundaries.
