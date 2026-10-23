@@ -55,7 +55,9 @@ Local verification before the first push:
 - `Scripts/verify_container.py` passed against the actual image with read-only root, UID/GID 10001, dropped capabilities, no-new-privileges, a private throwaway volume, **128 MiB memory and 0.5 CPU**. Verified authenticated REST/MCP sharing data, all six MCP tools, restart persistence, idempotency replay, stable server identity, backup and export. No pytest/compiler/Git/Node is installed. Process RSS in this sample was **68,752 kB (about 67 MiB)**; capacity under sustained load is not established.
 - Random test tokens existed only in a mode-0600 temporary file and runtime environment. The check removed only its own disposable container and volume. User data and previous verification volumes were preserved.
 
-The first remote workflow and anonymous GHCR pull still need verification after pushing; publication configuration alone is not evidence of a downloadable image. The intended always-on deployment and real phone workflow remain separate acceptance gates.
+The public source was pushed as `01f1ec8` to [takboo/nianbox](https://github.com/takboo/nianbox). SSH port 22 was unavailable; GitHub's SSH-over-443 route succeeded with existing strict host-key verification. The first ARM64 CI run failed during pytest collection. The same `ModuleNotFoundError: nianbox` was reproduced locally with the `pytest` entry point (the previously used `python -m pytest` passed). An explicit project-root pytest path fixes collection; the exact CLI invocation now passes all 19 tests. Docker dependency updates are constrained to Python 3.12 patch/digest changes; interpreter upgrades need deliberate review.
+
+The first successful remote workflow and anonymous GHCR pull still need verification; publication configuration alone is not evidence of a downloadable image. The intended always-on deployment and real phone workflow remain separate acceptance gates.
 
 ## Remaining live acceptance
 

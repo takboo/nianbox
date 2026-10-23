@@ -2,6 +2,9 @@ version: 2
 updates:
   - package-ecosystem: docker
     directory: /Server
+    ignore:
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]
     schedule:
       interval: weekly
   - package-ecosystem: github-actions
