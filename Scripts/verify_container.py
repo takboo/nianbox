@@ -113,6 +113,7 @@ assert os.getuid() == 10001 and os.getgid() == 10001
 assert importlib.util.find_spec('pytest') is None
 assert all(shutil.which(tool) is None for tool in ('gcc', 'g++', 'make', 'git', 'node'))
 assert not Path('/app/tests').exists() and not Path('/app/.env').exists()
+assert 'Copyright (c) 2026 Emanuele Di Pietro' in Path('/app/LICENSE').read_text()
 assert json.loads(Path('/data/check.json').read_text())['tasks']
 rss = next(line for line in Path('/proc/1/status').read_text().splitlines() if line.startswith('VmRSS:'))
 print(json.dumps({'uid': os.getuid(), 'gid': os.getgid(), 'processRSS': rss, 'python': os.sys.version.split()[0]}))

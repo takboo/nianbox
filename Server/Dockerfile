@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir --no-compile --only-binary=:all: -r requirements.
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin nianbox \
     && mkdir /data && chown nianbox:nianbox /data
 COPY nianbox ./nianbox
+COPY LICENSE ./LICENSE
 LABEL org.opencontainers.image.title="NianBox Server" \
       org.opencontainers.image.description="Single-user SQLite REST and MCP memory inbox" \
       org.opencontainers.image.source="https://github.com/takboo/nianbox" \
