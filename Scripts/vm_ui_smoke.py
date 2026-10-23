@@ -15,6 +15,7 @@ parser.add_argument('--probe', type=Path, required=True)
 parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--fixture', type=Path)
+parser.add_argument('--shortcut-holder', type=Path)
 args = parser.parse_args()
 model = subprocess.check_output(['/usr/sbin/sysctl', '-n', 'hw.model'], text=True).strip()
 if not model.startswith('VirtualMac'):
@@ -248,6 +249,53 @@ def hermes():
     raise AssertionError('VM completion did not reach NianBox Server')
 
 
+def configurable_shortcut():
+    launch(normal=True)
+    probe('key', 'shortcut')
+    probe('click', 'id=settings-button')
+    control = 'id=quick-capture-shortcut'
+    wait(control)
+    probe('click', control)
+    probe('key', 'captureK')
+    wait('text=⌃⌥K')
+    capture('custom-shortcut-settings')
+    if args.shortcut_holder:
+        holder = subprocess.Popen([str(args.shortcut_holder.resolve())], stdout=subprocess.PIPE, text=True)
+        try:
+            assert holder.stdout.readline().strip() == 'READY'
+            probe('click', control)
+            probe('key', 'captureL')
+            assert any('unavailable' in str(n) for n in nodes()), 'Conflict was not reported'
+            wait('text=⌃⌥K')
+            capture('shortcut-conflict-retains-setting')
+        finally:
+            holder.terminate(); holder.wait(timeout=5)
+    # Cancellation must restore the current registration.
+    probe('click', control)
+    probe('key', 'escape')
+    subprocess.run(['/usr/bin/open', '-a', 'Finder'], check=True)
+    probe('key', 'captureK')
+    wait('id=new-task-title')
+    title = 'Configured shortcut capture ' + str(time.time_ns())
+    probe('type', title); probe('key', 'return')
+    wait('text=' + title)
+    stop(); launch(normal=True)
+    subprocess.run(['/usr/bin/open', '-a', 'Finder'], check=True)
+    probe('key', 'captureK')
+    wait('id=new-task-title')
+    wait('text=' + title)
+    probe('click', 'id=settings-button')
+    wait(control)
+    probe('click', control); probe('key', 'delete')
+    wait('text=Not set')
+    probe('press', 'text=Restore default shortcut')
+    wait('text=⌃⌥Space')
+    capture('shortcut-default-restored')
+    subprocess.run(['/usr/bin/open', '-a', 'Finder'], check=True)
+    probe('key', 'shortcut')
+    wait('id=new-task-title')
+
+
 try:
     save()
     check('capture_status_menu_history', capture_status_menu)
@@ -255,6 +303,8 @@ try:
     check('long_title_wrap', wrapping)
     check('search', search)
     check('global_shortcut_corner_and_disk_reopen', global_corner_persistence)
+    if args.shortcut_holder:
+        check('configurable_shortcut_conflict_and_reopen', configurable_shortcut)
     if args.fixture:
         check('hermes_server_vm_roundtrip', hermes)
 finally:

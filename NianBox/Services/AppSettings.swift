@@ -12,6 +12,7 @@ final class AppSettings: ObservableObject {
         static let hasAdoptedInstantReveal = "hasAdoptedInstantRevealV3"
         static let hasShownWelcome = "hasShownWelcome"
         static let isTranslucent = "isTranslucent"
+        static let captureShortcut = "quickCaptureShortcut"
     }
 
     @Published var corner: ScreenCorner {
@@ -45,9 +46,35 @@ final class AppSettings: ObservableObject {
     }
 
     private let defaults: UserDefaults
+    @Published private(set) var captureShortcut: QuickCaptureShortcut?
+    @Published var shortcutError: String?
+    var registerShortcut: ((QuickCaptureShortcut?) throws -> Void)?
+    var shortcutRecordingChanged: ((Bool) throws -> Void)?
+
+    private struct ShortcutPreference: Codable { var shortcut: QuickCaptureShortcut? }
+
+    func updateCaptureShortcut(_ shortcut: QuickCaptureShortcut?) throws {
+        guard shortcut == nil || shortcut!.isValid else { throw ShortcutError.invalid }
+        let data = try JSONEncoder().encode(ShortcutPreference(shortcut: shortcut))
+        // Registration must succeed before changing the persisted preference.
+        try registerShortcut?(shortcut)
+        defaults.set(data, forKey: Key.captureShortcut)
+        captureShortcut = shortcut
+        shortcutError = nil
+    }
+
+    func setShortcutRecording(_ recording: Bool) {
+        do { try shortcutRecordingChanged?(recording) }
+        catch { shortcutError = error.localizedDescription }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        if let data = defaults.data(forKey: Key.captureShortcut),
+           let preference = try? JSONDecoder().decode(ShortcutPreference.self, from: data),
+           preference.shortcut == nil || preference.shortcut!.isValid {
+            captureShortcut = preference.shortcut
+        } else { captureShortcut = .default }
         corner = ScreenCorner(rawValue: defaults.string(forKey: Key.corner) ?? "") ?? .topRight
         let storedDelay = defaults.object(forKey: Key.revealDelay) as? Double
         var resolvedDelay = storedDelay ?? 0.2

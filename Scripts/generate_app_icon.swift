@@ -1,69 +1,55 @@
+// Technical asset export from the approved imagegen master; no creative redrawing.
 import AppKit
 import Foundation
 
-guard CommandLine.arguments.count == 2 else {
-    fputs("Usage: generate_app_icon.swift <AppIcon.appiconset>\n", stderr)
-    exit(1)
+guard CommandLine.arguments.count == 3,
+      let source = NSImage(contentsOfFile: CommandLine.arguments[1]) else {
+    fatalError("Usage: swift generate_app_icon.swift <master.png> <Assets.xcassets>")
 }
+let assets = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true)
+let appIcon = assets.appendingPathComponent("AppIcon.appiconset")
+let menuIcon = assets.appendingPathComponent("MenuBarIcon.imageset")
+try FileManager.default.createDirectory(at: appIcon, withIntermediateDirectories: true)
+try FileManager.default.createDirectory(at: menuIcon, withIntermediateDirectories: true)
 
-let outputDirectory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
-let sizes = [16, 32, 64, 128, 256, 512, 1024]
-
-try FileManager.default.createDirectory(
-    at: outputDirectory,
-    withIntermediateDirectories: true
-)
-
-for pixelSize in sizes {
-    guard let bitmap = NSBitmapImageRep(
-        bitmapDataPlanes: nil,
-        pixelsWide: pixelSize,
-        pixelsHigh: pixelSize,
-        bitsPerSample: 8,
-        samplesPerPixel: 4,
-        hasAlpha: true,
-        isPlanar: false,
-        colorSpaceName: .deviceRGB,
-        bytesPerRow: 0,
-        bitsPerPixel: 0
-    ), let context = NSGraphicsContext(bitmapImageRep: bitmap) else {
-        throw CocoaError(.fileWriteUnknown)
-    }
-
+func png(size: Int, drawing: (NSRect) -> Void) throws -> Data {
+    let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
     NSGraphicsContext.saveGraphicsState()
-    NSGraphicsContext.current = context
-    context.imageInterpolation = .high
-
-    let canvas = NSRect(x: 0, y: 0, width: pixelSize, height: pixelSize)
-    // Let macOS apply the icon mask exactly once. A transparent, pre-rounded
-    // background is treated like legacy artwork and gets an extra Dock frame.
-    NSColor(calibratedRed: 0.14, green: 0.23, blue: 0.27, alpha: 1).setFill()
-    canvas.fill()
-
-    guard let baseSymbol = NSImage(systemSymbolName: "archivebox.fill", accessibilityDescription: nil) else {
-        throw CocoaError(.fileReadUnknown)
-    }
-    let pointConfiguration = NSImage.SymbolConfiguration(
-        pointSize: CGFloat(pixelSize) * 0.52,
-        weight: .medium
-    )
-    let blackConfiguration = NSImage.SymbolConfiguration(paletteColors: [NSColor(calibratedRed: 0.96, green: 0.85, blue: 0.63, alpha: 1)])
-    let symbol = baseSymbol.withSymbolConfiguration(pointConfiguration.applying(blackConfiguration)) ?? baseSymbol
-    let symbolWidth = CGFloat(pixelSize) * 0.72
-    let aspectRatio = symbol.size.height / max(symbol.size.width, 1)
-    let symbolHeight = symbolWidth * aspectRatio
-    let symbolRect = NSRect(
-        x: (CGFloat(pixelSize) - symbolWidth) / 2,
-        y: (CGFloat(pixelSize) - symbolHeight) / 2,
-        width: symbolWidth,
-        height: symbolHeight
-    )
-    symbol.draw(in: symbolRect)
-
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+    NSGraphicsContext.current?.imageInterpolation = .high
+    drawing(NSRect(x: 0, y: 0, width: size, height: size))
     NSGraphicsContext.restoreGraphicsState()
-
-    guard let png = bitmap.representation(using: .png, properties: [:]) else {
-        throw CocoaError(.fileWriteUnknown)
-    }
-    try png.write(to: outputDirectory.appendingPathComponent("icon_\(pixelSize).png"))
+    return bitmap.representation(using: .png, properties: [:])!
 }
+for size in [16, 32, 64, 128, 256, 512, 1024] {
+    try png(size: size) { source.draw(in: $0) }
+        .write(to: appIcon.appendingPathComponent("icon_\(size).png"))
+}
+// Reduced monochrome companion to the full 3D application artwork.
+for scale in [1, 2] {
+    try png(size: 18 * scale) { _ in
+        let transform = NSAffineTransform()
+        transform.scale(by: CGFloat(scale))
+        transform.concat()
+        NSColor.black.setFill()
+        NSBezierPath(roundedRect: NSRect(x: 5, y: 7, width: 8, height: 10), xRadius: 1.5, yRadius: 1.5).fill()
+        NSBezierPath(roundedRect: NSRect(x: 1, y: 1, width: 16, height: 10), xRadius: 3, yRadius: 3).fill()
+        let opening = NSBezierPath()
+        opening.move(to: NSPoint(x: 2.5, y: 10))
+        opening.line(to: NSPoint(x: 6.3, y: 10))
+        opening.curve(to: NSPoint(x: 9, y: 8.5), controlPoint1: NSPoint(x: 7, y: 8.5), controlPoint2: NSPoint(x: 7.8, y: 8.5))
+        opening.curve(to: NSPoint(x: 11.7, y: 10), controlPoint1: NSPoint(x: 10.2, y: 8.5), controlPoint2: NSPoint(x: 11, y: 8.5))
+        opening.line(to: NSPoint(x: 15.5, y: 10))
+        NSGraphicsContext.current!.cgContext.setBlendMode(.clear)
+        opening.lineWidth = 1.2
+        opening.stroke()
+    }.write(to: menuIcon.appendingPathComponent("menu-\(scale)x.png"))
+}
+let menuContents: [String: Any] = ["images": [
+    ["filename": "menu-1x.png", "idiom": "mac", "scale": "1x"],
+    ["filename": "menu-2x.png", "idiom": "mac", "scale": "2x"]],
+    "info": ["author": "xcode", "version": 1], "properties": ["template-rendering-intent": "template"]]
+try JSONSerialization.data(withJSONObject: menuContents, options: [.prettyPrinted, .sortedKeys])
+    .write(to: menuIcon.appendingPathComponent("Contents.json"))

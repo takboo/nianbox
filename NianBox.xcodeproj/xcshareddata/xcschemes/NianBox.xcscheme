@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1E433230858AF954EF3A87AF5B73C432"
+               BlueprintIdentifier = "5C2DA65F643DA0CD769E7982A0A947D2"
                BuildableName = "NianBox.app"
                BlueprintName = "NianBox"
                ReferencedContainer = "container:NianBox.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1E433230858AF954EF3A87AF5B73C432"
+            BlueprintIdentifier = "5C2DA65F643DA0CD769E7982A0A947D2"
             BuildableName = "NianBox.app"
             BlueprintName = "NianBox"
             ReferencedContainer = "container:NianBox.xcodeproj">
@@ -41,7 +41,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "658E26C057BE8CBAF16DA9D78AC81D5A"
+               BlueprintIdentifier = "5B790B97FBF694B63DDF9AD254254C9E"
                BuildableName = "NianBoxTests.xctest"
                BlueprintName = "NianBoxTests"
                ReferencedContainer = "container:NianBox.xcodeproj">
@@ -80,7 +80,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1E433230858AF954EF3A87AF5B73C432"
+            BlueprintIdentifier = "5C2DA65F643DA0CD769E7982A0A947D2"
             BuildableName = "NianBox.app"
             BlueprintName = "NianBox"
             ReferencedContainer = "container:NianBox.xcodeproj">
@@ -97,7 +97,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1E433230858AF954EF3A87AF5B73C432"
+            BlueprintIdentifier = "5C2DA65F643DA0CD769E7982A0A947D2"
             BuildableName = "NianBox.app"
             BlueprintName = "NianBox"
             ReferencedContainer = "container:NianBox.xcodeproj">

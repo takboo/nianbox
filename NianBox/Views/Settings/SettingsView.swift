@@ -55,6 +55,26 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
+                    Label("Quick capture shortcut", systemImage: "keyboard").font(.headline)
+                    Spacer()
+                    ShortcutRecorder(settings: settings).frame(width: 160, height: 28)
+                }
+                Text("Click the shortcut, then press your preferred keys. Escape cancels; Delete disables it.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Button("Restore default shortcut") {
+                    do { try settings.updateCaptureShortcut(.default) }
+                    catch { settings.shortcutError = error.localizedDescription }
+                }
+                .controlSize(.small)
+                if let error = settings.shortcutError {
+                    Text(error).font(.caption).foregroundStyle(.orange)
+                }
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
                     Label("Hide delay", systemImage: "eye.slash")
                         .font(.headline)
                     Spacer()
@@ -141,14 +161,8 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack(spacing: 13) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(Color.primary)
-                    .frame(width: 48, height: 48)
-                Image(systemName: "archivebox.fill")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(Color(nsColor: .windowBackgroundColor))
-            }
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable().frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 2) {
                 Text("NianBox")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
@@ -216,7 +230,7 @@ struct SettingsView: View {
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
 
-            Link(destination: URL(string: "https://github.com/Emanuele-web04/Peekaboo")!) {
+            Link(destination: URL(string: "https://github.com/takboo/nianbox")!) {
                 Label("Open source on GitHub", systemImage: "arrow.up.right")
                     .font(.system(size: 10, weight: .medium, design: .rounded))
             }

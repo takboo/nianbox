@@ -1,7 +1,7 @@
 name: nianbox
 services:
   server:
-    image: ${NIANBOX_IMAGE:-ghcr.io/takboo/nianbox:main}
+    image: ${NIANBOX_IMAGE:-ghcr.io/takboo/nianbox:stable}
     restart: unless-stopped
     environment:
       NIANBOX_API_TOKEN: ${NIANBOX_API_TOKEN:?Set a random API token of at least 32 characters}

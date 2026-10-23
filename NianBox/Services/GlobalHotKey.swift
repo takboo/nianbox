@@ -2,31 +2,32 @@ import Carbon.HIToolbox
 
 @MainActor
 final class GlobalHotKey {
-    private static let signature: OSType = 0x504B424F // "PKBO"
-
-    private let keyCode: UInt32
-    private let modifiers: UInt32
+    private static let signature: OSType = 0x4E424F58 // "NBOX"
+    private var shortcut: QuickCaptureShortcut?
+    private var identifier: UInt32 = 0
     private let action: @MainActor () -> Void
     private var hotKeyReference: EventHotKeyRef?
     private var eventHandlerReference: EventHandlerRef?
 
-    convenience init(action: @escaping @MainActor () -> Void) {
-        self.init(
-            keyCode: UInt32(kVK_Space),
-            modifiers: UInt32(controlKey | optionKey),
-            action: action
-        )
+    init(action: @escaping @MainActor () -> Void) { self.action = action }
+
+    func replace(with candidate: QuickCaptureShortcut?) throws {
+        guard let candidate else { unregister(); return }
+        guard candidate.isValid else { throw ShortcutError.invalid }
+        if shortcut == candidate, hotKeyReference != nil { return }
+        if eventHandlerReference == nil { try installHandler() }
+        let nextID = identifier &+ 1
+        var nextReference: EventHotKeyRef?
+        let status = RegisterEventHotKey(candidate.keyCode, candidate.modifiers,
+            EventHotKeyID(signature: Self.signature, id: nextID), GetApplicationEventTarget(), 0, &nextReference)
+        guard status == noErr else { throw ShortcutError.registration(status) }
+        if let hotKeyReference { UnregisterEventHotKey(hotKeyReference) }
+        hotKeyReference = nextReference
+        shortcut = candidate
+        identifier = nextID
     }
 
-    init(keyCode: UInt32, modifiers: UInt32, action: @escaping @MainActor () -> Void) {
-        self.keyCode = keyCode
-        self.modifiers = modifiers
-        self.action = action
-    }
-
-    func register() {
-        guard hotKeyReference == nil else { return }
-
+    private func installHandler() throws {
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
@@ -52,6 +53,7 @@ final class GlobalHotKey {
                 }
 
                 let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(context).takeUnretainedValue()
+                guard identifier.id == hotKey.identifier else { return noErr }
                 Task { @MainActor in hotKey.action() }
                 return noErr
             },
@@ -60,21 +62,7 @@ final class GlobalHotKey {
             context,
             &eventHandlerReference
         )
-        guard installStatus == noErr else { return }
-
-        let identifier = EventHotKeyID(signature: Self.signature, id: 1)
-        let registerStatus = RegisterEventHotKey(
-            keyCode,
-            modifiers,
-            identifier,
-            GetApplicationEventTarget(),
-            0,
-            &hotKeyReference
-        )
-        if registerStatus != noErr {
-            if let eventHandlerReference { RemoveEventHandler(eventHandlerReference) }
-            eventHandlerReference = nil
-        }
+        guard installStatus == noErr else { throw ShortcutError.registration(installStatus) }
     }
 
     func unregister() {
@@ -82,5 +70,6 @@ final class GlobalHotKey {
         if let eventHandlerReference { RemoveEventHandler(eventHandlerReference) }
         hotKeyReference = nil
         eventHandlerReference = nil
+        shortcut = nil
     }
 }

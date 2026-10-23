@@ -4,6 +4,7 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var syncEngine: SyncEngine
+    @ObservedObject var settings: AppSettings
     let coordinator: AppCoordinator
 
     var body: some View {
@@ -14,7 +15,7 @@ struct MenuBarView: View {
         Button("New task", systemImage: "plus") {
             coordinator.showNewTask()
         }
-        .keyboardShortcut(.space, modifiers: [.control, .option])
+        .keyboardShortcut(settings.captureShortcut?.menuShortcut)
 
         Divider()
 

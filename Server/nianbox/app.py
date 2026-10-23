@@ -115,7 +115,8 @@ def create_app(db_path: str | None = None, token: str | None = None):
         async with mcp.session_manager.run():
             yield
 
-    app = FastAPI(title='NianBox Server', version='0.1.0', lifespan=lifespan,
+    from . import __version__
+    app = FastAPI(title='NianBox Server', version=__version__, lifespan=lifespan,
                   docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store = store
     app.add_middleware(Boundary, token=token)

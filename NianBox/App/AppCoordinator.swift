@@ -85,7 +85,14 @@ final class AppCoordinator {
 
         guard !isRunningTests else { return }
         syncEngine.start()
-        newTaskHotKey.register()
+        settings.registerShortcut = { [weak self] shortcut in try self?.newTaskHotKey.replace(with: shortcut) }
+        settings.shortcutRecordingChanged = { [weak self] recording in
+            guard let self else { return }
+            if recording { self.newTaskHotKey.unregister() }
+            else { try self.newTaskHotKey.replace(with: self.settings.captureShortcut) }
+        }
+        do { try newTaskHotKey.replace(with: settings.captureShortcut) }
+        catch { settings.shortcutError = error.localizedDescription }
         hoverMonitor.start()
         if !settings.hasShownWelcome {
             settings.markWelcomeShown()

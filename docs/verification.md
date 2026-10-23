@@ -91,3 +91,9 @@ Scripts/verify_sync.sh .local/e2e.json
 ```
 
 See [Hermes](hermes.md), [deployment/restore](deployment.md) and [sync contract](sync.md) for setup and recovery rules. Test fixtures contain only random test credentials and generated diagnostic tasks, are ignored by Git, and should be handled as private files.
+
+## v0.2.0 release preparation
+
+The user explicitly requested publication of a new version, a matching `stable` image, automatic DMG releases, a corrected project link, configurable capture keys and new artwork. The chosen design is original D with its 3D drawer/note identity retained; a flat simplification was rejected. The final imagegen master is stored in `Branding/` and technical app/menu exports are committed.
+
+Local checks so far: **19 server tests and 65 macOS unit tests passed**, deterministic generation and Actionlint passed. The Universal Release app builds with arm64/x86_64 slices and only the existing three sandbox entitlements. A headlessly generated DMG mounts and passes layout, Applications-link, architecture and signature checks. Runtime container checks passed for the 0.2.0 server. VM shortcut/installation checks and remote tag/release/stable publication are pending; this section will be updated with actual results before delivery.

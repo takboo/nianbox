@@ -7,8 +7,10 @@ struct NianBoxApp: App {
     private let coordinator = AppCoordinator.shared
 
     var body: some Scene {
-        MenuBarExtra("NianBox", systemImage: "archivebox") {
-            MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, coordinator: coordinator)
+        MenuBarExtra {
+            MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, settings: coordinator.settings, coordinator: coordinator)
+        } label: {
+            Image("MenuBarIcon").accessibilityLabel("NianBox")
         }
         .menuBarExtraStyle(.menu)
         .commands {

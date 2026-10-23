@@ -9,6 +9,12 @@ Based on [Peekaboo](https://github.com/Emanuele-web04/Peekaboo) by Emanuele Di P
 - Completed tasks remain until explicitly deleted. No mobile app or paid Apple service is required.
 - macOS sync and Hermes verification status: [verification](docs/verification.md).
 
+## Install the Mac app
+
+Download the Universal DMG from [GitHub Releases](https://github.com/takboo/nianbox/releases/latest), open it and drag NianBox to Applications. Open NianBox from Applications; use the menu bar, corner or global capture shortcut. Configure your preferred shortcut in Settings; Escape cancels recording, Delete disables it, and Restore default resets it to Control–Option–Space. You can begin offline and connect a server later.
+
+Personal builds are ad-hoc signed and not Apple-notarized. On first download macOS may require an explicit Privacy & Security → Open Anyway decision; no system security settings need to be disabled.
+
 ## Build the Mac app
 
 Requires Xcode 16+ (verified with Xcode 26.2). Open `NianBox.xcodeproj`, choose `NianBox` and run. Ad-hoc signing is configured; no developer team is required.

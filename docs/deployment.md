@@ -12,11 +12,11 @@ docker compose ps
 
 The public source repository is `takboo/nianbox`; server images are published to `ghcr.io/takboo/nianbox`. Deployment only needs `compose.yaml` and a private `.env`, not Python, Xcode, the source checkout or a local image build. GitHub Container Registry supports anonymous pulls of public packages ([GitHub documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)). Package visibility is separate from repository visibility; verify an anonymous pull after the first publication.
 
-Pushes to `main` run the server suite and restricted-container checks on native Linux AMD64 and ARM64 runners, plus macOS unit tests. Only after those jobs pass does CI publish the multi-platform `:main` and `:sha-<full-commit>` tags, with revision metadata, provenance and an SBOM. CI uses its short-lived `GITHUB_TOKEN` with `packages: write`; no registry credential belongs in this repository. Pull requests and other branches run checks without publishing. No Git tag or GitHub release is created by this workflow.
+Pushes to `main` and version tags run the server suite and restricted-container checks on native Linux AMD64 and ARM64 runners, plus macOS unit tests. Only after those jobs pass does CI publish the multi-platform `:main` and `:sha-<full-commit>` tags, with revision metadata, provenance and an SBOM. CI uses its short-lived `GITHUB_TOKEN` with `packages: write`; no registry credential belongs in this repository. Pull requests and other branches run checks without publishing. Version tags also build a Universal DMG and publish a GitHub Release; `stable` is promoted only after the DMG and image checks pass. See [release workflow](releases/README.md). Routine main pushes do not move `stable`.
 
 Publishing uses fresh builds and disables the QEMU image cache. It does not require GitHub Actions cache download capacity. Superseded runs are cancelled automatically; Dependabot uses pull-request checks without a duplicate branch-push run.
 
-For a trial deployment, `.env.example` selects `ghcr.io/takboo/nianbox:main`. For a deployment you want to reproduce or roll back, take the digest from the successful workflow summary and set:
+For deployment, `.env.example` selects `ghcr.io/takboo/nianbox:stable`. For a deployment you want to reproduce or roll back, take the digest from the successful workflow summary and set:
 
 ```dotenv
 NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:<published-index-digest>

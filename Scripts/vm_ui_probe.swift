@@ -107,6 +107,7 @@ struct VMUIProbe {
                     if field == "AXValue", string(element, "AXSubrole") == "AXSecureTextField" { continue }
                     if let value = string(element, field), !value.isEmpty { node[field] = value }
                 }
+                if let url = attribute(element, "AXURL") as? URL { node["AXURL"] = url.absoluteString }
                 return node
             }
             try output(["guestModel": model.trimmingCharacters(in: .whitespacesAndNewlines), "pid": pid, "nodes": nodes])
@@ -136,6 +137,9 @@ struct VMUIProbe {
             case "escape": key(53)
             case "selectAll": key(0, flags: .maskCommand)
             case "shortcut": key(49, flags: [.maskControl, .maskAlternate])
+            case "captureK": key(40, flags: [.maskControl, .maskAlternate])
+            case "captureL": key(37, flags: [.maskControl, .maskAlternate])
+            case "delete": key(51)
             default: throw ProbeFailure(message: "Unknown key")
             }
         case "move":
