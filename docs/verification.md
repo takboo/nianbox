@@ -16,13 +16,26 @@
 | macOS 单元测试 | 77 项通过，`.local/v030-native.xcresult` |
 | 版本与生成项目 | 0.3.0 版本一致；确定性生成与 macOS-only 目标校验通过，`.local/v030-project-generation.log` |
 | 文档相对链接与归档屏蔽 | 19 份 Markdown、82 个相对链接／资源／锚点通过；普通 `rg` 不包含归档 |
-| Universal DMG | 0.3.0 本地候选构建、签名、双架构、沙盒与 DMG 布局通过，`.local/v030-package.log`；正式分发由标签 CI 独立构建 |
-| 原生 VM | 0.3.0 候选八项全通过，干净源码 `1bf01a9`，`.local/v030-vm-candidate-evidence/`；另有 `013ddcd` 的原生状态栏补验 |
-| 真实 HTTP 与 MCP | 本次已安装 Hermes 六工具重验通过，`.local/v030-hermes.log`。功能源码 `013ddcd`：提交写入后丢弃响应、再通过 MCP 更新，Mac 重试后保留最新标题与备注才报告 Synced；已安装 Hermes 原生客户端六工具与磁盘往返通过 |
+| Universal DMG | 本地候选与正式 Actions 包分别通过构建、签名、双架构、沙盒与布局检查；正式下载 SHA256SUMS 一致，`.local/v030-public-dmg-check.json` |
+| 原生 VM | 候选八项通过；正式包八项及原生状态栏补验全部通过，干净发布源码 `94a2491`，`.local/v030-vm-public-evidence/`；39 份证据／驱动文件与客体哈希一致 |
+| 真实 HTTP 与 MCP | 已安装 Hermes 原生六工具重验通过，`.local/v030-hermes.log`、`.local/v030-hermes-release.log`；正式包完成 Hermes → 服务端 → VM → REST 往返。丢失回执与并发编辑回归包含在本次单元测试中，原始 HTTP 故障复核见归档 |
+| 发布 CI | [0.3.0 标签工作流](https://github.com/takboo/nianbox/actions/runs/40045331785)全部成功，包含原生 Linux AMD64／ARM64、macOS、镜像发布与实际容器验证；Release 已公开 |
+| 匿名分发 | 公开下载与已测 DMG 字节一致；`0.3.0`、`v0.3.0`、`stable` 索引摘要一致且均包含 Linux AMD64／ARM64，`.local/v030-public-release/distribution.json` |
 
 0.3.0 本地候选 DMG SHA-256：`76cb2c319f81d314d69159ffd4d0b425bbb3b7453d966ecf577a2eb43431f4c8`；执行文件 SHA-256：`f9b2a205f588e0ad2ae521f0adcf6d3952d9d087f6a350310955931f2132fc8e`。VM 结果中的源提交、App、probe 与 controller 均已核对。正式包由标签 CI 另行构建，不能混用两组摘要。
 
-宿主环境为 macOS 15.7.9、Xcode 26.3；原生 VM 为 macOS 15.7.7／VirtualMac2,1。`013ddcd` 原始记录见 `.local/final-native.xcresult`、`.local/server-full.log`、`.local/http-sync-roundtrip.log`、`.local/hermes-live.log`、`.local/vm-acceptance-evidence/` 与 `.local/vm-menu-evidence/`。这些是固定历史构建的证据，不代表新包自动通过；旧完整摘要见归档。
+正式分发固定身份（与上面的本地候选分别记录）：
+
+| 产物 | 身份 |
+| --- | --- |
+| 源码标签 | `v0.3.0` → `94a2491af75087bf394baf5bbcda2e6b4f047669` |
+| 正式 DMG SHA-256 | `89ce3e36887e7456dc9a181364fdbd4886ee39518293e0d775461fcc1590f8b7` |
+| 正式 App 执行文件 SHA-256 | `29f4561dfeae7871f46c117f90d8dde0e2cac727be0aff0fb2751629cd65687e` |
+| 发布时镜像索引 | `ghcr.io/takboo/nianbox@sha256:5305f9650220a9df2b7d69eb04709a230c53d5460d55606be6f99d19505380df` |
+
+宿主环境为 macOS 15.7.9、Xcode 26.3；原生 VM 为 macOS 15.7.7／VirtualMac2,1。正式包 VM 报告位于 `.local/v030-vm-public-evidence/`，身份清单位于 `.local/v030-vm-public-sha256.txt`，客体原件保留在 `~/nianbox-testing/v030-github/`。服务端测试只有三条依赖弃用警告，无失败。
+
+发布后已删除生成的客体／宿主测试凭据、关闭隔离服务与 tunnel、停止自有 VM；保留数据盘、合成历史和证据。工作区回到 main。更早的固定构建结果只从归档追溯，不用旧包的通过记录替代本次正式包。
 
 ## 兼容与未验证范围
 
