@@ -40,7 +40,7 @@ export TART_NO_AUTO_PRUNE=1
 
    ```sh
    swiftc -parse-as-library vm_ui_probe.swift -o probe
-   swiftc vm_shortcut_holder.swift -o shortcut-holder
+   swiftc -parse-as-library vm_shortcut_holder.swift -o shortcut-holder
    python3 vm_ui_smoke.py --app NianBox.app --probe probe \
      --source source --output acceptance-RUN --shortcut-holder shortcut-holder
    ```

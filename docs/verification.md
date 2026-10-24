@@ -17,8 +17,10 @@
 | 版本与生成项目 | 0.3.0 版本一致；确定性生成与 macOS-only 目标校验通过，`.local/v030-project-generation.log` |
 | 文档相对链接与归档屏蔽 | 19 份 Markdown、82 个相对链接／资源／锚点通过；普通 `rg` 不包含归档 |
 | Universal DMG | 0.3.0 本地候选构建、签名、双架构、沙盒与 DMG 布局通过，`.local/v030-package.log`；正式分发由标签 CI 独立构建 |
-| 原生 VM | 已验证功能源码 `013ddcd`，八项完整交互与一项状态栏补验通过；0.3.0 包的验收另记 |
+| 原生 VM | 0.3.0 候选八项全通过，干净源码 `1bf01a9`，`.local/v030-vm-candidate-evidence/`；另有 `013ddcd` 的原生状态栏补验 |
 | 真实 HTTP 与 MCP | 本次已安装 Hermes 六工具重验通过，`.local/v030-hermes.log`。功能源码 `013ddcd`：提交写入后丢弃响应、再通过 MCP 更新，Mac 重试后保留最新标题与备注才报告 Synced；已安装 Hermes 原生客户端六工具与磁盘往返通过 |
+
+0.3.0 本地候选 DMG SHA-256：`76cb2c319f81d314d69159ffd4d0b425bbb3b7453d966ecf577a2eb43431f4c8`；执行文件 SHA-256：`f9b2a205f588e0ad2ae521f0adcf6d3952d9d087f6a350310955931f2132fc8e`。VM 结果中的源提交、App、probe 与 controller 均已核对。正式包由标签 CI 另行构建，不能混用两组摘要。
 
 宿主环境为 macOS 15.7.9、Xcode 26.3；原生 VM 为 macOS 15.7.7／VirtualMac2,1。`013ddcd` 原始记录见 `.local/final-native.xcresult`、`.local/server-full.log`、`.local/http-sync-roundtrip.log`、`.local/hermes-live.log`、`.local/vm-acceptance-evidence/` 与 `.local/vm-menu-evidence/`。这些是固定历史构建的证据，不代表新包自动通过；旧完整摘要见归档。
 
