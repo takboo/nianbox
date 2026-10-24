@@ -1,15 +1,13 @@
-# NianBox artwork
+# 念匣图标
 
-The selected direction is D, a dark green 3D memory drawer with an ivory note and sage accents on terracotta. The user requested preserving the original 3D identity after rejecting a flat simplification. `AppIcon-source.png` is the built-in imagegen master, saved in this repository. It is rendered into the standard 16–1024 px asset catalog sizes. A rounded terracotta plate and transparent outer margin give macOS 14/15 a finished icon silhouette; the 3D subject sits inside the plate with breathing room. The menu bar uses a runtime monochrome companion in `NianBox/Design/MenuBarIconRenderer.swift`, retaining the drawer, round knob and folded note. `MenuBarLifecycle` drives paper motion from real capture/save events and typed sync activity; idle polls remain still and Reduce Motion is respected. Connection failure uses disconnected plugs, local-save failure a large cross in the drawer front, and deletion conflict two divergent notes. App-icon exports do not overwrite this runtime artwork. Preview variants stay outside Git.
-
-Regenerate technical exports with:
+应用图标采用深绿色立体抽屉、圆形把手与折角纸张，置于有透明外边距的陶土色圆角底板。`AppIcon-source.png` 是当前母版，标准 16–1024 像素资源由脚本导出：
 
 ```sh
 swift Scripts/generate_app_icon.swift Branding/AppIcon-source.png NianBox/Resources/Assets.xcassets
 ```
 
-Built-in imagegen edit prompt for the final master:
+菜单栏使用 `NianBox/Design/MenuBarIconRenderer.swift` 运行时绘制的单色模板图，包含 18 与 36 像素表示；沿用抽屉、圆把手与折角纸张，不从应用图标缩小导出。`MenuBarLifecycle` 根据真实录入、本地保存和同步活动更新图形；状态规则见[同步契约](../docs/sync.md#展示与录入)。
 
-> Preserve the original dark ink-green 3D drawer, sage round knob, ivory folded note with sage dot, viewpoint, lighting and tactile materials. Change only packaging and scale: a centered rounded-square terracotta plate occupies about 88 percent of the square canvas, with genuine transparency outside; the complete object occupies about 68 percent of the canvas, inside the plate with breathing room. Keep soft depth and contact shadow. No flat redesign, text, lettering, watermark, border or additional marks.
+连接失败以断开的插头表示，本地保存失败在抽屉正面显示大叉，删除冲突使用分开的纸张。错误状态同时提供文字原因；减少动态效果与空轮询静默必须保留。图形应在真实菜单栏尺寸及明暗背景下检查。
 
-No third-party symbol is used as the application icon. This repository's MIT license applies to the exported assets.
+候选图、生成提示词与已弃用设计过程可通过 Git 历史追溯；预览与试验产物留在忽略目录，不作为现行实现。应用图标未使用第三方符号，导出资源随项目采用 MIT 许可。

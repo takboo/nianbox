@@ -1,6 +1,6 @@
 [project]
 name = "nianbox-server"
-version = "0.2.0"
+version = "0.3.0"
 description = "NianBox Server: single-user SQLite REST and MCP service"
 requires-python = ">=3.12"
 dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "mcp>=1.24,<2"]

@@ -1,88 +1,79 @@
-# Deploy, backup and restore
+# 服务端部署、备份与恢复
 
-Run Compose on an always-on Linux host so Hermes can work while the Mac is off. The loopback-only default is intentional. Copy `.env.example` to `.env`, generate a secret with `python3 -c 'import secrets; print(secrets.token_urlsafe(48))'` and set `NIANBOX_API_TOKEN`. Restrict `.env` permissions (`chmod 600 .env`). Add the actual HTTPS hostname to `NIANBOX_ALLOWED_HOSTS`; never commit this file. Use the same token in Mac settings and the Hermes environment.
+NianBox Server 独立于 Mac App 运行。需要 Mac 关机时仍可使用 Hermes，请部署到常开的 Linux 设备。macOS 客户端只需安装 App；服务端支持 Linux AMD64／ARM64。
+
+## 启动服务
+
+准备 Docker Compose、仓库中的 `compose.yaml` 与 `.env.example`。将 `.env.example` 复制为私有 `.env`，用下列命令生成令牌并填写 `NIANBOX_API_TOKEN`，设置文件权限 `chmod 600 .env`：
 
 ```sh
+python3 -c 'import secrets; print(secrets.token_urlsafe(48))'
 docker compose pull
 docker compose up -d --no-build
 docker compose ps
 ```
 
-## Images from GitHub
+默认镜像为 `ghcr.io/takboo/nianbox:stable`，允许匿名拉取；应用数据持久化在 `nianbox-data` 命名卷，端口仅绑定 `127.0.0.1:8088`。Mac 与 Hermes 使用相同令牌；令牌至少 32 个非空白 ASCII 字符，留在私有环境中。将实际服务域名加入 `NIANBOX_ALLOWED_HOSTS`，不包含协议或端口。
 
-The public source repository is `takboo/nianbox`; server images are published to `ghcr.io/takboo/nianbox`. Deployment only needs `compose.yaml` and a private `.env`, not Python, Xcode, the source checkout or a local image build. GitHub Container Registry supports anonymous pulls of public packages ([GitHub documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)). Package visibility is separate from repository visibility; verify an anonymous pull after the first publication.
+服务以 UID/GID 10001 运行，根文件系统只读、移除 Linux capabilities，仅 `/data` 持久化。部署不需要源码构建、Python 或 Xcode。镜像使用锁定依赖与固定摘要的 Python 基础镜像；依赖升级需重建并重新部署。
 
-Pushes to `main` and version tags run the server suite and restricted-container checks on native Linux AMD64 and ARM64 runners, plus macOS unit tests. Only after those jobs pass does CI publish the multi-platform `:main` and `:sha-<full-commit>` tags, with revision metadata, provenance and an SBOM. CI uses its short-lived `GITHUB_TOKEN` with `packages: write`; no registry credential belongs in this repository. Pull requests and other branches run checks without publishing. Version tags also build a Universal DMG and publish a GitHub Release; `stable` is promoted only after the DMG and image checks pass. See [release workflow](releases/README.md). Routine main pushes do not move `stable`.
+## 网络与接入
 
-Publishing uses fresh builds and disables the QEMU image cache. It does not require GitHub Actions cache download capacity. Superseded runs are cancelled automatically; Dependabot uses pull-request checks without a duplicate branch-push run.
-
-For deployment, `.env.example` selects `ghcr.io/takboo/nianbox:stable`. For a deployment you want to reproduce or roll back, take the digest from the successful workflow summary and set:
-
-```dotenv
-NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:<published-index-digest>
-```
-
-The first verified public image is commit `b60a7dd36fc05bcd85f2ef63b0c29a83f2cf8a84`, index digest `sha256:325d335d39d5969af3d773d2309a51cb0e57f8919ee716911a0973c04d75ea50`. Its AMD64/ARM64 layers each require approximately 53 MB on a cold pull. See [verification](verification.md) for the exact artifact and test evidence; `:main` will advance with subsequent successful publications.
-
-Back up first, record the current digest, change `NIANBOX_IMAGE`, then run `docker compose pull && docker compose up -d --no-build`. Check health and authenticated data before accepting the upgrade. To roll back the binary, restore the previous digest; preserve the data volume and check schema compatibility before downgrading. Never use `down -v` for upgrades. A public image contains application code and locked dependencies; user tasks and tokens are supplied only at runtime.
-
-To build local changes instead:
-
-```sh
-docker compose -f compose.yaml -f compose.build.yaml up -d --build
-```
-
-### Runtime footprint
-
-The runtime uses the official Python 3.12 slim image pinned by multi-platform digest, SQLite and one Uvicorn process. Only pinned production dependencies and `nianbox/*.py` enter the image; wheel-only installation fails rather than introducing a compiler toolchain. There are no test packages, Node, Git, Redis or worker services. Bytecode compilation and pip caches are disabled during installation. The image retains the standard Python slim runtime, including its shell and pip; it is not a distroless or absolutely smallest image. A separate build stage would currently leave the same runtime dependencies, since no compilation occurs.
-
-Compose runs as UID/GID 10001, with a read-only root, a 16 MiB temporary filesystem, all Linux capabilities dropped, no privilege escalation and a PID limit. Only `/data` persists; the host port binds to loopback. Image size and measured memory are recorded in [verification](verification.md). The automated image check also runs under a 128 MiB memory limit and 0.5 CPU; this is a smoke-test constraint, not a production capacity guarantee. Size, process RSS, container memory and download bytes are different measures.
-
-Pinned base images need updates. Dependabot checks Docker and Actions dependencies weekly; review and run the full checks before accepting updates. Rebuild and redeploy deliberately to receive fixes.
-
-Prefer Tailscale Serve on the host (Tailscale installed, signed in, HTTPS enabled for the tailnet):
+推荐通过自己的 HTTPS 或私有网络访问。已安装并登录 Tailscale、启用 tailnet HTTPS 的常开主机，可执行：
 
 ```sh
 tailscale serve --bg http://127.0.0.1:8088
 ```
 
-Use the HTTPS URL reported by Serve, with `/mcp/` for Hermes and the URL origin for the Mac. Tailnet ACLs should allow only your devices and the Hermes host. Keep Bearer authentication enabled. Do not enable Funnel or publish port 8000/8088 to the internet. Reference: [Tailscale Serve](https://tailscale.com/kb/1242/tailscale-serve).
+使用 Serve 实际输出的 HTTPS URL。Tailnet ACL 仅允许自己的设备和 Hermes 主机访问，保留 Bearer 认证；不要开启 Funnel 或把 8000／8088 直接暴露到公网。自有 HTTPS 反向代理可参考 `deploy/Caddyfile.example`：代理在宿主上连接 loopback，TLS 在代理终止，保留适当防火墙规则。
 
-For your own HTTPS reverse proxy, use `deploy/Caddyfile.example` on a host with a valid DNS name and certificates. Caddy should run on the host (its upstream is loopback); retain firewall restrictions appropriate to your network. TLS termination belongs at the proxy, and the server validates Host and rejects browser Origin headers. Do not log Authorization headers or request bodies. No browser client or CORS access is provided.
+Mac 设置填写服务根地址；Hermes 使用 `/mcp/`，详见[Hermes 接入](hermes.md)。REST 与 MCP 均需 `Authorization: Bearer <token>`；只有不含用户数据的 `/health` 免认证。服务校验 Host 并拒绝浏览器 Origin，不提供浏览器客户端或 CORS。代理日志不要记录认证头或任务正文。
 
-## Backup
+## 升级与固定版本
 
-Use SQLite's online backup API so WAL changes are included:
+[对应 Release](https://github.com/takboo/nianbox/releases) 提供同版本 DMG、SHA256SUMS 与完整镜像索引摘要。生产部署推荐把 `.env` 中的 `NIANBOX_IMAGE` 固定为该摘要：
 
-```sh
-docker compose exec server python -m nianbox backup /data/backup-2026-10-23.sqlite
-docker compose cp server:/data/backup-2026-10-23.sqlite ./backup-2026-10-23.sqlite
-docker compose exec server python -m nianbox export /data/export-2026-10-23.json
-docker compose cp server:/data/export-2026-10-23.json ./export-2026-10-23.json
+```dotenv
+NIANBOX_IMAGE=ghcr.io/takboo/nianbox@sha256:<release 中的索引摘要>
 ```
 
-Pick fresh filenames; commands refuse to overwrite backups/exports. Store off-host copies securely. JSON export is portable user data including tombstones; SQLite backup is the supported full-fidelity recovery format, including change history and idempotency receipts. Copying only the live `.sqlite` file can omit committed WAL data.
+升级前备份、记录旧摘要，再修改镜像引用并运行 `docker compose pull`、`docker compose up -d --no-build`。检查健康与已认证的数据读取，保留旧卷。`stable` 只由完整版本发布提升；`:main` 随开发主线变化。发布机制见[发布流程](releases/README.md)。
 
-## Restore
+二进制回退时使用旧摘要，保留现有卷并先核对数据兼容性。客户端与服务端都升级到 0.3.0 或以上后，才能依赖游标历史摘要保护；首次升级不能追溯验证升级前的区间。恢复与换服需要先对账，不能清空队列或游标来消除错误。
 
-Stop writes and stop the service. Preserve the existing data volume. Create a NEW volume, populate it with the backed-up SQLite database named `nianbox.sqlite`, set ownership to UID/GID 10001, and use a Compose override that mounts the new volume at `/data`. Start against this copy and verify health, task counts, completed history, tombstones and authenticated MCP before switching clients. Retain the previous volume for rollback. Never use `docker compose down -v` as part of upgrades.
+本地源码镜像仅用于开发或明确需要的部署：
 
-Upgraded Mac clients persist a history digest with each cursor. A restored backup that later reuses sequence numbers is rejected as `history_diverged`; clients without a saved digest cannot detect that fork. A restore to an earlier point may also leave Mac cursors ahead: the client must stop and preserve its local store/outbox. Reconcile the missing interval before resuming. Do not silently reset cursors and upload an old cache. Moving to another server is a deliberate data migration, not a settings-only change. Token rotation requires updating server, Mac and Hermes; it does not change task data.
+```sh
+docker compose -f compose.yaml -f compose.build.yaml up -d --build
+```
 
-### Concrete recovery commands
+## 备份
 
-After obtaining a standalone backup, run on the Docker host (replace the date and filename; choose a fresh volume name):
+使用 SQLite online backup，保证包含 WAL 中已提交的数据。以下文件名仅为示例，每次选择新名字；命令拒绝覆盖已有备份或导出：
+
+```sh
+docker compose exec server python -m nianbox backup /data/backup-2026-10-24.sqlite
+docker compose cp server:/data/backup-2026-10-24.sqlite ./backup-2026-10-24.sqlite
+docker compose exec server python -m nianbox export /data/export-2026-10-24.json
+docker compose cp server:/data/export-2026-10-24.json ./export-2026-10-24.json
+```
+
+将副本安全保存在另一台设备。SQLite 备份是完整恢复格式，包含变更历史、墓碑与幂等回执。JSON 导出适合查看和迁移用户数据，不等于完整数据库备份。直接复制正在写入的主 `.sqlite` 文件可能漏掉 WAL 数据。
+
+## 恢复
+
+先停止写入与服务，保留原数据卷。向**新卷**恢复备份，验证后再切换客户端。示例中日期、备份路径与卷名需要按本次恢复替换：
 
 ```sh
 docker compose stop server
-docker volume create nianbox-restored-20261023
+docker volume create nianbox-restored-20261024
 docker run --rm --user 0 \
-  -v nianbox-restored-20261023:/restore \
-  -v "$PWD/backup-2026-10-23.sqlite:/backup.sqlite:ro" \
+  -v nianbox-restored-20261024:/restore \
+  -v "$PWD/backup-2026-10-24.sqlite:/backup.sqlite:ro" \
   python:3.12-slim python -c 'from pathlib import Path; import shutil,os; p=Path("/restore/nianbox.sqlite"); assert not p.exists(); shutil.copyfile("/backup.sqlite",p); os.chown(p,10001,10001); os.chown("/restore",10001,10001)'
 ```
 
-Create an untracked `restore.override.yaml`:
+创建忽略的 `restore.override.yaml`：
 
 ```yaml
 services:
@@ -92,13 +83,15 @@ services:
 volumes:
   nianbox-restored:
     external: true
-    name: nianbox-restored-20261023
+    name: nianbox-restored-20261024
 ```
 
-Start with `docker compose -f compose.yaml -f restore.override.yaml up -d --no-build`. The `/data` mount is replaced with the new volume; the old named volume remains untouched. Verify through authenticated REST and Hermes before pointing the Mac at this restored service. To roll back, stop the restored service and run `docker compose up -d --no-build` without the override. Keep both volumes until reconciliation is accepted.
+执行 `docker compose -f compose.yaml -f restore.override.yaml up -d --no-build`。确认健康、事项数量、完成历史、墓碑与已认证 MCP，保留旧卷供回退；回退时先停恢复服务，再不用 override 启动原卷。升级或恢复均不使用 `docker compose down -v`。
 
-## Mac local data
+旧备份可能让 Mac 游标领先，或重新使用同一序列号。客户端分别以 `cursor_ahead`、`history_diverged` 暂停，保留本机数据与队列，先导出并核对缺失区间。数据库身份变化也会暂停；换服是数据迁移，不能仅改设置继续上传旧缓存。令牌轮换需同步更新服务端、Mac 与 Hermes，不改变任务数据。
 
-Settings → Export local data writes tasks (including retained history/tombstones) and every pending/blocked mutation. It excludes the API token. Recover a deleted task's retained text deliberately into a new UUID; editing the old tombstone cannot restore it.
+## Mac 本地数据
 
-For a complete local cache backup, quit NianBox first, then copy its entire `NianBox` Application Support directory, including any store sidecars and supporting files. A sandboxed app normally uses `~/Library/Containers/org.nianbox.NianBox/Data/Library/Application Support/NianBox/`; an unsigned development app uses `~/Library/Application Support/NianBox/`. Preserve the current directory before restoring the whole backup with the app stopped and the same app version. Keep the original server URL/identity; the durable outbox and receipts handle retries. A server restored behind the local cursor requires reconciliation as described above. Export first before attempting a version downgrade or moving to another server.
+Settings → Export local data 导出事项、历史、墓碑及全部待同步／阻塞条目，不含 API 令牌。远端已删除事项的保留文字可人工恢复为新 UUID，旧墓碑不会复活。
+
+完整本机备份需先退出 App，再复制整个 `NianBox` Application Support 目录及附属文件。沙盒 App 通常使用 `~/Library/Containers/org.nianbox.NianBox/Data/Library/Application Support/NianBox/`；无沙盒开发进程使用 `~/Library/Application Support/NianBox/`。同版本停止运行时整体恢复，先保留当前目录副本，并沿用原服务 URL／数据库身份。降级或换服前先导出对账。
