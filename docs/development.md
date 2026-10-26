@@ -34,6 +34,8 @@ git diff --check
 
 构建与单元测试在宿主保持非交互。单元测试环境使用内存库并跳过全局快捷键、角落监测和服务连接。交互测试发出真实系统输入，先读 [VM 测试流程](macos-vm-testing.md)。验证记录写入[当前验证](verification.md)，注明源提交与产物身份；旧日志不作为新构建通过的依据。
 
+GitHub CI 的 `container-toolchain` 任务实际运行固定 SHA 的 QEMU、Buildx 与 GHCR 登录 Action，使用只读权限构建带 provenance／SBOM 的 AMD64／ARM64 OCI 归档，并核对导出的架构。该任务不推送镜像；发布任务同时等待它、原生服务端检查和 macOS 检查通过。维护 Docker Action 时同步检查冒烟、publish 与 release 中的引用，保留 QEMU 缓存关闭设置。
+
 同步修改另验证持久化队列重开、写入幂等、并发重试、墓碑与删除冲突。`Scripts/hermes_smoke.py` 和 `Scripts/verify_sync.sh` 使用合成凭据连接隔离服务，方法见 [Hermes 集成验证](hermes.md#集成验证)。容器修改可运行 `Scripts/verify_container.py IMAGE`；它只操作自己创建的临时容器和卷。
 
 ## 本地服务开发

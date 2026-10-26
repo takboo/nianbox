@@ -1,6 +1,6 @@
 # 当前验证范围
 
-更新于 2026-10-24。本文只维护当前交付范围与证据入口；各轮过程、失败记录和旧发布摘要见[历史归档](archive/README.md)。正式分发的提交、DMG 校验与镜像摘要以 [0.3.0 Release](https://github.com/takboo/nianbox/releases/tag/v0.3.0) 及其标签工作流为准。
+更新于 2026-10-26。本文只维护当前交付范围与证据入口；各轮过程、失败记录和旧发布摘要见[历史归档](archive/README.md)。正式分发的提交、DMG 校验与镜像摘要以 [0.3.0 Release](https://github.com/takboo/nianbox/releases/tag/v0.3.0) 及其标签工作流为准。
 
 ## 本次范围
 
@@ -36,6 +36,43 @@
 宿主环境为 macOS 15.7.9、Xcode 26.3；原生 VM 为 macOS 15.7.7／VirtualMac2,1。正式包 VM 报告位于 `.local/v030-vm-public-evidence/`，身份清单位于 `.local/v030-vm-public-sha256.txt`，客体原件保留在 `~/nianbox-testing/v030-github/`。服务端测试只有三条依赖弃用警告，无失败。
 
 发布后已删除生成的客体／宿主测试凭据、关闭隔离服务与 tunnel、停止自有 VM；保留数据盘、合成历史和证据。工作区回到 main。更早的固定构建结果只从归档追溯，不用旧包的通过记录替代本次正式包。
+
+## 已合并的 checkout 升级 #2 — 2026-10-26
+
+[PR #2](https://github.com/takboo/nianbox/pull/2) 已于北京时间 2026-10-26 12:54 合并为 `7dfd971b540756b6b93fc12f840ddf80465470e1`，只修改 `ci.yml` 中四处 checkout 引用。publish 固定到 v7.0.1 的完整 SHA `3d3c42e5aac5ba805825da76410c181273ba90b1`；其他三个 job 保留主版本标签写法。本次 main 日志确认已执行的 `@v7` 引用解析到同一 SHA。
+
+跨版本兼容性按[固定版本上游说明](https://github.com/actions/checkout/blob/3d3c42e5aac5ba805825da76410c181273ba90b1/README.md)核对：v5 使用 Node 24，要求 runner ≥ 2.327.1；v6 将持久化凭据移到 `$RUNNER_TEMP`，容器 Action 内的认证 Git 操作要求 runner ≥ 2.329.0；v7 默认限制 `pull_request_target`／`workflow_run` 事件中的 fork PR 检出。已读取的 Linux AMD64、macOS 与 publish 日志均为 runner 2.338.0。当前只用 `push`／`pull_request`，没有读取 `.git/config` 凭据或在容器 Action 内执行认证 Git 的自定义步骤，Docker 构建使用 `./Server` 本地上下文；未发现这些变更造成的不兼容。
+
+合并后的 [main 工作流 40271448067](https://github.com/takboo/nianbox/actions/runs/40271448067)全部应运行的 job 成功：Linux AMD64／ARM64 服务端检查与受限容器验证、macOS 项目生成及单元测试、实际双架构镜像发布。AMD64 日志为 26 项服务端测试通过；macOS 日志为 77 项通过。三个已读取 job 的 checkout 与清理步骤也均成功。发布日志确认 `:main` 与 `:sha-7dfd971b540756b6b93fc12f840ddf80465470e1` 已推送，索引摘要为 `sha256:9e705545da74ede00f40883ab91813387d46367fca3075b4158efe4ae9364fd7`；此处依据远端日志，未重新拉取验证镜像。
+
+结论：保留 #2，无需回退。当前工作流通过 Actionlint。标签专用的 DMG 构建、Release 与 stable 提升在此 main 运行中跳过，不能将此前 0.3.0 标签流程的通过结果视为 checkout v7 的验证；下次标签发布需单独核对。本次仅审查既有运行，未触发远端任务、发布或修改工作流，也未重跑本地应用测试。
+
+## Dependabot Actions 审查 — 2026-10-26
+
+本地 `codex/nianbox-macos` 从 `5c9e2f2` 快进到 `origin/main` 的 `7dfd971b540756b6b93fc12f840ddf80465470e1`，包含 0.3.0 与已合并的 checkout v7 升级。保留原分支；本地旧 `main` 仍跟踪 `upstream/main`，更新本 fork 应显式指定 `origin/main`。
+
+| PR | 审查时 head | 升级 | 该 head 的 Actions 检查 |
+| --- | --- | --- | --- |
+| [#1](https://github.com/takboo/nianbox/pull/1) | `5954ebe87c0c15653f89d18eee66700bc100b737` | setup-uv v6 → v7 | [Linux 双架构与 macOS 成功](https://github.com/takboo/nianbox/actions/runs/40271632342)；publish／release 跳过 |
+| [#4](https://github.com/takboo/nianbox/pull/4) | `9086bea970ac35d27ee1bfeab5521a778c732cc8` | setup-qemu 3.7.0 → 4.4.0 | [Linux 双架构与 macOS 成功](https://github.com/takboo/nianbox/actions/runs/40271610069)；publish／release 跳过 |
+| [#5](https://github.com/takboo/nianbox/pull/5) | `61a703f795b6164e0929454ff44cb91c9a05d1c5` | setup-buildx 3.12.0 → 4.4.1 | [Linux 双架构与 macOS 成功](https://github.com/takboo/nianbox/actions/runs/40271615005)；publish／release 跳过 |
+| [#6](https://github.com/takboo/nianbox/pull/6) | `85fed15623c26421c7659aebde2cc86a2e6e4340` | login 3.7.0 → 4.7.0 | [Linux 双架构与 macOS 成功](https://github.com/takboo/nianbox/actions/runs/40271630831)；publish／release 跳过 |
+
+四个 PR 均可合并、只改 `ci.yml` 中对应的 Action 引用；没有评审、讨论或未解决行内线程。逐一与远端分支比对，四份工作流及组合后的候选均通过 Actionlint 1.7.12；0.3.0 版本一致性与 `git diff --check` 通过。候选文件保留于忽略目录 `.local/dependabot-review-20261026/`，正式工作流未修改。
+
+新版 Action 均使用 Node 24。Docker v4 要求 runner ≥ 2.327.1；当前全部为 GitHub 托管 runner。按目标版本的 `action.yml` 核对，现用参数仍受支持，QEMU 的 `platforms: arm64`、`cache-image: false` 与 Docker Action 的完整 SHA 固定均保留。setup-uv v7 移除的 `server-url` 未被使用，安装的 uv 仍固定为 0.7.13。上游依据：[setup-uv v7](https://github.com/astral-sh/setup-uv/releases/tag/v7.0.0)、[QEMU v4](https://github.com/docker/setup-qemu-action/releases/tag/v4.0.0)、[Buildx v4](https://github.com/docker/setup-buildx-action/releases/tag/v4.0.0)、[login v4](https://github.com/docker/login-action/releases/tag/v4.0.0)。
+
+建议先接受 #1；其 Linux 安装路径已有实际 CI 证据，但标签专用的 DMG 路径仍未执行。#4／#5／#6 没有发现接口不兼容，当前绿灯却没有执行升级后的 Docker Action。合并前建议补一次在 GitHub runner 上使用这些目标版本的冒烟检查：安装 ARM64 QEMU、创建 Buildx、以只读令牌登录 GHCR，并进行 `push: false` 的双架构构建。通过后再逐项合并并核对 main 的 publish。无需为依赖升级打新版本；按现有工作流，main 合并会发布 `:main`／提交镜像，只有版本标签流程才提升 `stable`。
+
+本轮仅拉取、审查并记录；未推送、合并 PR、触发远端任务或发布。本地未重跑服务端／macOS 单元测试，表中为各 PR 指定 head 的远端 CI 结果；未运行桌面自动化，也没有新的正式产物或部署验收。
+
+## Actions 升级实施 — 2026-10-26
+
+用户确认实施后，#1 已合并为 `ccae3da77363f8c5e6f066bed24a94ccf396450c`。本次补充 `container-toolchain` CI：直接使用 #4／#5／#6 的目标 SHA，安装 ARM64 QEMU、创建 Buildx、以 `contents: read`／`packages: read` 登录 GHCR，执行 `push: false` 的双架构构建并检查 OCI 归档中的平台。保留 provenance／SBOM，关闭 QEMU 镜像缓存与冒烟任务的 Buildx 二进制缓存。publish 增加对此任务的依赖；正式发布引用仍由对应 Dependabot PR 逐项升级。
+
+提交前本地检查：Python 3.12.11／uv 0.7.13 下 26 项服务端测试、77 项 macOS 单元测试、确定性项目生成、版本一致性、Actionlint 1.7.12 与差异空白检查通过。宿主 Xcode 为 26.2。系统 Ruby 2.6.10 配合仓库既有 `.local/gems` 直接运行生成校验通过；CI 的 Ruby 3.4／Bundler 检查另由工作流执行。初次沙箱内 Xcode 检查因 SwiftData 宏插件失败，沙箱外非交互重跑通过；没有运行 UI 自动化或改动用户存储。证据位于 `.local/dependabot-implementation-20261026/` 的 `server.log`、`native-unsandboxed.log` 与 `native-unsandboxed.xcresult`。初始失败结果也保留。
+
+实施前匿名查询确认 `stable` 仍为 0.3.0 的索引摘要 `sha256:5305f9650220a9df2b7d69eb04709a230c53d5460d55606be6f99d19505380df`。本次只维护 Actions，未改变产品版本；远端冒烟及后续合并／发布结果待相应运行完成后补充。
 
 ## 兼容与未验证范围
 
