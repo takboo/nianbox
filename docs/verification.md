@@ -1,6 +1,6 @@
 # 当前验证范围
 
-更新于 2026-11-03。本文只维护当前交付范围与证据入口；各轮过程、失败记录和旧发布摘要见[历史归档](archive/README.md)。正式分发的提交、DMG 校验与镜像摘要以 [0.3.0 Release](https://github.com/takboo/nianbox/releases/tag/v0.3.0) 及其标签工作流为准。下述复制、Homebrew 与更新提醒改进属于未发布的本地候选。
+更新于 2026-11-03。当前正式版本为 [0.4.0](https://github.com/takboo/nianbox/releases/tag/v0.4.0)，包含复制、Homebrew 与应用内更新提醒。本文分别保留实现阶段候选、既有功能验收和正式分发证据；当前发布结论见“0.4.0 正式发布”一节。各轮过程与旧发布摘要见[历史归档](archive/README.md)，先前 0.3.0 的固定身份仍在其对应记录中。
 
 ## 本次范围
 
@@ -115,7 +115,24 @@ Cask 当前仍指向公开的 0.3.0，DMG SHA-256 为 `89ce3e36887e7456dc9a18136
 
 提交前的最终 0.4.0 源码检查：100 项 macOS 单元测试、26 项服务端测试、4 项 Cask 维护测试、locked 依赖同步、确定性项目生成、版本一致性、Actionlint 与 `git diff --check` 全部通过。证据位于 `.local/release-v040-20261103/` 的 `native.log`／`native.xcresult`、`server.log`、`server-sync.log`、`project-generation.log`。此前 0.3.0 工作版本的候选及 VM 结果分别保留于上节，不能代替本次最终产物。
 
-接下来从干净提交构建并检查本地 0.4.0 Universal DMG，在隔离 VM 验收后推送 main 与新标签，由标签 CI 生成正式分发。正式下载校验、公开 Release、镜像三种版本标签一致性以及 Cask 提升在完成后另行补充结果；当前 Cask 继续指向已公开且验证过的 0.3.0，直到 0.4.0 正式 DMG 公开。
+从干净提交 `dc72341c47b596e219914deae0811a593334a9aa` 构建并检查了本地 0.4.0 Universal DMG，候选 SHA-256 为 `30c3351f975711f68461dc905b8ba416ee6f5c8455a0a6c460bfd6b093ae6852`。用户随后明确要求不重复已经完成的整套功能验收，因此取消本轮重复 VM 回归，复用此前已通过的功能结果；最终版本元数据、正式安装包与分发身份单独核对。Cask 在 0.4.0 正式 DMG 公开前保持 0.3.0，公开后才按实际摘要提升。
+
+## 0.4.0 正式发布 — 2026-11-03
+
+已按本轮授权推送 main 并发布新的 `v0.4.0` 标签，固定源提交为 `dc72341c47b596e219914deae0811a593334a9aa`。首次标签 CI 在已完成测试、DMG 构建后，因 GitHub 创建 Release 草稿接口返回 HTTP 500 失败；创建同目标的草稿并只重试失败 job 后，[标签工作流第二次尝试](https://github.com/takboo/nianbox/actions/runs/41603946175)全部成功，未改动源提交或移动标签。[main 工作流](https://github.com/takboo/nianbox/actions/runs/41603938737)也已成功。
+
+| 正式分发检查 | 结果与身份 |
+| --- | --- |
+| Release | [0.4.0 已公开](https://github.com/takboo/nianbox/releases/tag/v0.4.0)，非草稿、非预发布，targetCommitish 与上述标签提交一致 |
+| 正式 DMG | 匿名下载 `NianBox-0.4.0-universal.dmg` 与 SHA256SUMS、GitHub 资源摘要一致；SHA-256 为 `d7012fefd7a18c770f0c5b21909a97172b2d7f6d9ccd246dc83ce1738ef3496d` |
+| DMG 结构 | 实际下载包的版本 0.4.0、bundle ID、arm64／x86_64、临时签名、三项既有沙盒 entitlement、Applications 链接与布局检查通过；仍未公证 |
+| 服务端镜像 | `0.4.0`、`v0.4.0`、`stable` 均为 `sha256:0149d866c1d62512f6448c02a910072c81d2bd3efc83dbd9a4584d158bebaade`；匿名 Registry 查询及内容摘要校验通过 |
+| 镜像源码与架构 | 两个 Linux 架构 manifest/config 的内容摘要有效，包含 AMD64／ARM64；revision 均为标签源提交，version label 按 workflow 为 `v0.4.0`。实际容器运行由标签 CI 完成，本地未重复启动容器测试 |
+| Homebrew | 正式包公开后才用维护脚本下载、校验并生成 0.4.0 Cask；固定 DMG 地址和上述正式 SHA-256，4 项维护测试与 Ruby 语法通过。Cask 与本节发布记录随后以单独元数据提交推送，不改正式源码标签或 DMG |
+
+正式检查证据位于 `.local/release-v040-20261103/`：`tag-ci-final.json`、`main-ci.json`、`release-state.json`、`public/`、`public-dmg-check.json`、`registry-final.json`、`cask-update.log`。本地候选与正式 CI 包字节不同，分别记录，不混用摘要。根工作区的功能源码在版本准备前与上一轮通过全部验收的清单一致；本次产品变更只提高版本／构建号，没有新增功能逻辑。
+
+按照用户要求，本轮没有重跑完整 VM 功能或 Homebrew 安装／升级回归；沿用上节 11 项功能验收、12 步包管理验收，并保留各自固定源码与候选身份。正式包本轮覆盖的是下载、结构、身份和分发检查，不能称为正式包完整 UI 验收或 Gatekeeper 首次下载启动验收。未部署到用户服务器，未改用户存储、签名方案或系统保护；本轮启动后取消重复验收的自有 VM 已停止，数据与既有证据保留。
 
 ## 已合并的 checkout 升级 #2 — 2026-10-26
 

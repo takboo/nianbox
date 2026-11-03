@@ -1,6 +1,6 @@
 cask "nianbox" do
-  version "0.3.0"
-  sha256 "89ce3e36887e7456dc9a181364fdbd4886ee39518293e0d775461fcc1590f8b7"
+  version "0.4.0"
+  sha256 "d7012fefd7a18c770f0c5b21909a97172b2d7f6d9ccd246dc83ce1738ef3496d"
 
   url "https://github.com/takboo/nianbox/releases/download/v#{version}/NianBox-#{version}-universal.dmg"
   name "NianBox"
