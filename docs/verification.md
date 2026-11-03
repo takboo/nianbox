@@ -1,6 +1,6 @@
 # 当前验证范围
 
-更新于 2026-10-26。本文只维护当前交付范围与证据入口；各轮过程、失败记录和旧发布摘要见[历史归档](archive/README.md)。正式分发的提交、DMG 校验与镜像摘要以 [0.3.0 Release](https://github.com/takboo/nianbox/releases/tag/v0.3.0) 及其标签工作流为准。
+更新于 2026-11-03。本文只维护当前交付范围与证据入口；各轮过程、失败记录和旧发布摘要见[历史归档](archive/README.md)。正式分发的提交、DMG 校验与镜像摘要以 [0.3.0 Release](https://github.com/takboo/nianbox/releases/tag/v0.3.0) 及其标签工作流为准。下述复制、Homebrew 与更新提醒改进属于未发布的本地候选。
 
 ## 本次范围
 
@@ -36,6 +36,86 @@
 宿主环境为 macOS 15.7.9、Xcode 26.3；原生 VM 为 macOS 15.7.7／VirtualMac2,1。正式包 VM 报告位于 `.local/v030-vm-public-evidence/`，身份清单位于 `.local/v030-vm-public-sha256.txt`，客体原件保留在 `~/nianbox-testing/v030-github/`。服务端测试只有三条依赖弃用警告，无失败。
 
 发布后已删除生成的客体／宿主测试凭据、关闭隔离服务与 tunnel、停止自有 VM；保留数据盘、合成历史和证据。工作区回到 main。更早的固定构建结果只从归档追溯，不用旧包的通过记录替代本次正式包。
+
+## 复制改进本地候选 — 2026-11-03
+
+实施前执行 `git fetch --all --prune`：工作区干净，`codex/nianbox-macos` 与 `origin/main` 同为 `40d29db877d7e109b7267c5ed28c53b68aa9e478`，ahead／behind 为 0／0；Peekaboo `upstream/main` 为 `54c23bf`，已包含其全部提交，本分支领先 24 个提交。没有待合入的上游变更，也未执行推送或发布。
+
+本地工作区新增悬停复制、事项选中与上下键导航、列表焦点下的系统 Copy 命令，以及完整备注浮层。菜单提供标题与完整备注、仅标题、Markdown 三种格式；成功反馈约两秒后清除。源码中将列表复制限制在列表焦点、非标题编辑、非备注浮层状态，并在开始录入／编辑、切换分组、筛选隐藏或删除后清除相关选择；浮层打开期间锁定面板自动收起。数据模型、用户存储和同步协议未改。
+
+| 检查 | 结果与依据 |
+| --- | --- |
+| 服务端回归 | Python 3.12.8／uv 0.7.13，26 项通过，三条依赖弃用警告；`.local/copy-improvements-20261103/server.log` |
+| macOS 单元测试 | 88 项通过，含 11 项新增复制与交互状态测试；完整备注和格式、独立剪贴板写入、键盘 ItemProvider 实际载荷、筛选／删除后的选中恢复、浮层锁定及连续反馈覆盖；`native-final.log`、`native-final.xcresult` |
+| 项目生成与静态检查 | 使用既有 `.local/gems` 的 xcodeproj 1.27.0 重新生成并通过确定性／macOS-only／免费签名能力校验；版本仍为 0.3.0；Python 驱动语法与 `git diff --check` 通过；`project-generation.log` |
+| UI 测试编译 | `build-for-testing` 通过，新增一键复制粘贴、上下键选中复制和搜索框文字复制用例，更新三种菜单名称；`build-for-testing.log`。仅编译，未执行 XCUITest |
+| 本地 Release 候选 | `arm64`／`x86_64` 构建与临时签名通过，`codesign --verify --deep --strict` 通过，保留沙盒、网络客户端和用户选择文件三项既有 entitlement；`release-build.log` |
+
+以上证据均在 `.local/copy-improvements-20261103/`。宿主为 macOS 15.8.1、Xcode 26.2；初次沙箱内构建被 SwiftData 宏插件限制阻止，保留 `native-initial.log`／`.xcresult`，沙箱外非交互重跑通过。单元测试使用内存数据库与独立命名剪贴板，不写宿主通用剪贴板或发送桌面输入。
+
+本地候选 App 位于 `.local/CopyReleaseDerivedData/Build/Products/Release/NianBox.app`，执行文件 SHA-256 为 `26487761a3ea200f075a247c472f6cfd78f1582d17ec97a66ab5714ee393dc0d`；源码为上述基线加本轮未提交改动，文件摘要见 `source-manifest.json`。它不是正式分发产物，未生成 DMG、安装到 `/Applications`、启动宿主 App、提高版本或创建标签。
+
+首轮本地构建时缺少文档记录的 `.local/vm-tools/` 与 `.local/tart/`，当时未执行隔离 VM 交互验收；后续已重新准备环境并完成下节补验。上述首轮结果仍只代表本地构建，不能与后续固定候选或旧正式包的 VM 结果混用。
+
+## 复制交互隔离 VM 补验 — 2026-11-03
+
+重新下载并核对 Tart 2.41.1 的发布归档 SHA-256，使用文档固定 digest 创建本仓库专用 `nianbox-lifecycle-test`。客体为 macOS 15.7.7／VirtualMac2,1、2 CPU、4096 MiB，最终实际逻辑桌面为 1440×1080、1x。使用默认 NAT 与严格 host key 校验的任务专用 SSH，关闭宿主剪贴板、目录、音频和 USB 共享；未连接真实服务器、使用生产令牌或操作宿主 App。
+
+原开发分支继续保留未提交改动。在忽略目录创建独立干净 Git 快照 `f4cb29409972fe729ec0cb371264a648d5daceed`，对应工作区基线仍为 `40d29db877d7e109b7267c5ed28c53b68aa9e478`；从快照构建并传入签名 Universal 候选。最终执行文件 SHA-256 为 `aae721f943c94c81735cd03da8a65bbb13a77e7db0d888f38c5a840ba6191295`，本地产物在 `.local/copy-vm-20261103/DerivedData-r3/Build/Products/Release/NianBox.app`，完整归档与工具身份见 `.local/copy-vm-20261103/identity-r3.json`。
+
+本轮实际定位并修复了浮层父容器的无障碍标识覆盖关闭按钮标识的问题：增加独立的无障碍分组，保留子控件标识。修复前浮层仍然可见，完整复制已成功，但 AX 树中关闭按钮错误继承父标识，原断言失败；修复后同一交互用例通过。另修正测试驱动在点击隐藏的复制按钮前缺少真实悬停的步骤，并补充右键菜单、客体剪贴板、滚动与局部文字选择断言。没有改动数据模型、存储路径或同步协议。
+
+在正常启动模式下验证复制与浮层行为，最终控制器没有使用 `--only`，完整十项均通过：
+
+| 交互 | 最终结果 |
+| --- | --- |
+| 一键复制与菜单 | 悬停后实际点击；标题＋完整长备注、仅标题、Markdown、真实右键菜单通过；中文、空行、缩进、链接与末尾标记完整；成功反馈可见 |
+| 键盘与焦点 | 从 Finder 直接点击非激活面板后 `⌘C` 正常，上下键切换目标；搜索／零匹配搜索／录入／标题编辑中的选中文字复制正常 |
+| 备注浮层 | 局部选择 `COPY-NOTES` 的真实键盘复制、滚动至末尾、仅备注全文复制、按钮复制整条内容、关闭按钮、鼠标离开时保持打开、关闭后自动收起及角落重开均通过 |
+| 原有七项 | 录入／状态／菜单／完成历史、原生拖动顺序、跨标签草稿、长标题换行、搜索、默认全局快捷键／角落／磁盘重开、自定义快捷键／冲突／取消／持久化／停用／恢复默认全部通过 |
+
+客体原件位于 `~/nianbox-testing/copy-r3/acceptance-full-r3/`；宿主副本位于 `.local/copy-vm-20261103/acceptance-full-r3/`。取回的 41 份报告、UI 树和截图逐份与客体 SHA-256 一致，见 `evidence-sha256.json`；20 张截图已检查，其中完整复制反馈、局部选择、末尾滚动和关闭后重开另作原图检查。报告中的干净快照提交、App 执行文件、probe 源码和控制器哈希均与宿主身份清单一致。早期失败及 r2 定向修复复测保留在同目录对应的日志和证据子目录。
+
+环境问题分别留证：基础镜像实际使用 1024×768 HiDPI 桌面，不能只依赖 Tart 配置中的尺寸；已在客体用 CoreGraphics 显示配置事务设置并读取确认 1440×1080。客体 CLT 6.1.2 缺少 SwiftData 宏插件，probe 与快捷键 holder 在客体编译，夹具工具从同一模型源码在宿主编译后仅在客体执行。夹具仅在新库中播种两条合成事项，已有库会拒绝写入；后续回归复用并保留它，未重置存储。初轮截图出现客体 sshd-session 屏幕录制提示，未自动批准；最终截图未遮挡被测界面。没有修改宿主权限、TCC 数据库或系统保护。
+
+修复后宿主 88 项 macOS 单元测试、26 项服务端测试、项目生成校验、版本一致性、驱动语法与差异检查通过；日志位于 `.local/copy-vm-20261103/` 的 `native-final.log`／`.xcresult`、`server-final.log`、`project-generation-final.log`。最终双架构构建与 `codesign --verify --deep --strict` 通过，源自干净快照的签名候选仍为 0.3.0。本轮是原生 AX＋客体 CoreGraphics 功能验收，未执行完整 XCUITest，也未验证 VoiceOver、物理 Intel、多显示器／Spaces、真实人类操作、正式下载的 Gatekeeper 或网络同步。没有生成正式 DMG、推送、打标签或发布。
+
+取回并核对证据后，结束本轮自己的 App 并停止 VM；保留磁盘、固定基础镜像、SSH identity、合成数据库、夹具 JSON 与原始证据供复用。复现步骤见[隔离 VM 流程](macos-vm-testing.md#复制与备注验收)。
+
+## Homebrew 与应用内更新提醒 — 2026-11-03
+
+按用户选定的免费、自用范围实施：本仓库的 `Casks/nianbox.rb` 同时提供自建 tap，固定到真实公开的 Universal DMG；没有新增独立远程仓库。应用提供菜单栏／Settings 手动检查、默认开启且可关闭的每日后台检查、角落面板与菜单中的新版入口，以及 Homebrew 升级命令复制。后台只在 App 运行期间判断到期，失败尝试也按 24 小时间隔节制请求，手动检查可立即重试。只接受公开稳定版及官方 DMG 地址，按数值比较版本；检查不读取服务端令牌、不发送事项内容。没有引入 Sparkle、下载替换、自动执行 Homebrew、自动重启或付费签名能力。
+
+Cask 当前仍指向公开的 0.3.0，DMG SHA-256 为 `89ce3e36887e7456dc9a181364fdbd4886ee39518293e0d775461fcc1590f8b7`。维护命令 `Scripts/update_homebrew_cask.py` 实际下载公开 Release 元数据、SHA256SUMS 与 DMG，校验摘要后在本地确定性生成 Cask，拒绝倒退版本，不提交或推送。Cask 没有自更新声明、quarantine 绕过、强制覆盖、自动退出或用户数据清理脚本。公开的旧 0.3.0 包不含本轮新增提醒，须等新版本正式发布后安装。
+
+| 检查 | 结果与证据 |
+| --- | --- |
+| macOS 单元测试 | 100 项通过，包含 12 项新增版本边界、稳定版／官方地址筛选、缓存、离线／限流、重开节流、手动检查、开关持久化、并发合并与真实 URLSession 请求契约测试；`native-final.log`、`native-final.xcresult` |
+| 服务端与 Cask 维护 | 26 项服务端通过、三条既有依赖弃用警告；4 项 Python Cask 测试通过，真实公开 0.3.0 Cask `--check` 通过；`server.log`、`cask-public-final.log` |
+| Homebrew 实际操作 | 客体 Homebrew 7.0.7 的 12 步通过，包括 Cask 样式、公开 0.2.0 安装 → 0.3.0 升级、签名／双架构校验、卸载、相同 App 的 `--adopt`、再次卸载和临时 tap 清理；`homebrew-r2/results.json` 及逐步日志 |
+| 包管理数据保留 | 原合成数据库及偏好共 4 个文件在包管理操作前后逐份 SHA-256 相同；公开 0.3.0 安装后的执行文件为 `29f4561dfeae7871f46c117f90d8dde0e2cac727be0aff0fb2751629cd65687e`，与既有正式包身份相符 |
+| 原生 VM 完整回归 | 11 项全部通过：本轮更新提醒，加此前复制／备注三项与原有七项；`acceptance-full-r4/results.json`。没有使用 `--only`，未连接服务器夹具 |
+| 更新提醒 UI | 实际菜单栏检查入口、新版 Release 链接与面板提示、命令复制、关闭自动检查后的手动检查、已最新／失败状态、草稿保留、进程重开后的开关持久化通过。模拟新版为 99.0.0，未打开其下载页；25 张最终截图已检查 |
+| 真实 GitHub API | 非交互编译生产 `GitHubReleaseClient`／解析逻辑，使用无认证请求实际取得并接受公开 0.3.0；`live-api.json`。与确定性 UI 夹具、离线／限流单元测试分别记录 |
+| 工程与构建 | 确定性 macOS-only 项目生成、版本 0.3.0 一致性、Cask Ruby 语法、Python 驱动语法、Actionlint 1.7.12 与差异空白检查通过；最终双架构 Release 与严格签名校验通过，保持既有三项 entitlement |
+
+证据根目录为 `.local/install-updates-20261103/`。Homebrew 检查使用本地干净快照 `6f0ce65f98ba0d366ec5accee197fcc89d9bd5aa`；最终 UI 使用干净快照 `fe0fbbd16d194bc0577e00cd3d55f350ee5e8c39`。后者的 Cask、维护脚本和包管理驱动与前者逐字节一致。根开发分支基线仍是 `40d29db877d7e109b7267c5ed28c53b68aa9e478`，保留此前复制改动及本轮未提交代码，没有推送或发布。
+
+最终候选位于 `.local/install-updates-20261103/DerivedData-r4/Build/Products/Release/NianBox.app`，执行文件 SHA-256 为 `532e3e27beb50d76afaa39efc8a1490b63f26bce7acd0110c76c5fed2a99261c`，源／归档／工具身份见 `identity-r4.json`。客体原件位于 `~/nianbox-testing/install-updates-r2/homebrew-r2/` 和 `~/nianbox-testing/install-updates-r4/acceptance-full-r4/`；取回的 64 份报告、日志、UI 树与截图逐份和客体 SHA-256 匹配，见 `evidence-sha256.json`。UI 报告中的源提交、App、probe 源码与控制器身份均已独立核对。
+
+本轮修正了 Homebrew 样式检查指出的最低系统声明，使用 `macos: :sonoma`；初始失败和修复复测均保留。一次完整回归在重开 Settings 时未命中开关，截图显示客体 Tips 自动打开且 Settings 尚未打开；相同产品候选原样重跑通过。为避免持久化检查依赖无关应用的首次鼠标焦点，该复测步骤改用 AX 语义动作，首次菜单栏入口仍用实际鼠标输入；最终完整回归通过，没有据此修改或宣称修复产品焦点逻辑。
+
+宿主 macOS 15.8.1／Xcode 26.2；客体继续为 macOS 15.7.7／VirtualMac2,1、2 CPU、4096 MiB、1440×1080。包管理检查与 UI 检查顺序执行，避免数据库比对期间有 App 写入。公开包只做安装／升级／文件检查，未启动它来绕过 Gatekeeper，因此包管理升级不等于首次下载启动、真实凭据访问或跨版本数据库运行验收。当前候选实际 UI 使用 AX＋客体 CoreGraphics，未执行完整 XCUITest；真实人类／VoiceOver／物理 Intel／多屏／浏览器首次下载仍按既有限制记录。
+
+本轮未修改签名方式、Hardened Runtime 或系统保护，也未请求宿主桌面权限。取回证据后，确认自己的 App 结束、包管理的 App 和临时 tap 已移除，再停止本轮启动的 VM；磁盘、SSH identity、合成数据库及证据继续保留。远端 tap 命令须在本轮 Cask 改动经授权推送后才可用，提醒功能须随新的正式版本分发；当前完成的是本地实现与验收。使用和维护步骤见[安装与更新](installation.md)。
+
+## 0.4.0 发布准备 — 2026-11-03
+
+用户已在本轮明确授权推送与发布。实施前刷新 origin／upstream 后，本地基线与 `origin/main` 仍同为 `40d29db877d7e109b7267c5ed28c53b68aa9e478`，公开最新版本为 0.3.0，0.4.0 标签尚未存在。版本统一提高到 0.4.0，生成器管理的构建号为 3；服务端只有版本元数据变化，锁文件保留现有格式与全部依赖固定值。
+
+提交前的最终 0.4.0 源码检查：100 项 macOS 单元测试、26 项服务端测试、4 项 Cask 维护测试、locked 依赖同步、确定性项目生成、版本一致性、Actionlint 与 `git diff --check` 全部通过。证据位于 `.local/release-v040-20261103/` 的 `native.log`／`native.xcresult`、`server.log`、`server-sync.log`、`project-generation.log`。此前 0.3.0 工作版本的候选及 VM 结果分别保留于上节，不能代替本次最终产物。
+
+接下来从干净提交构建并检查本地 0.4.0 Universal DMG，在隔离 VM 验收后推送 main 与新标签，由标签 CI 生成正式分发。正式下载校验、公开 Release、镜像三种版本标签一致性以及 Cask 提升在完成后另行补充结果；当前 Cask 继续指向已公开且验证过的 0.3.0，直到 0.4.0 正式 DMG 公开。
 
 ## 已合并的 checkout 升级 #2 — 2026-10-26
 

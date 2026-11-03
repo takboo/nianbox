@@ -9,7 +9,7 @@ struct NianBoxApp: App {
     var body: some Scene {
         MenuBarExtra {
             MenuBarView(store: coordinator.store, syncEngine: coordinator.syncEngine, settings: coordinator.settings,
-                        uiState: coordinator.uiState, coordinator: coordinator)
+                        uiState: coordinator.uiState, updates: coordinator.updates, coordinator: coordinator)
         } label: {
             MenuBarIconLabel(lifecycle: coordinator.menuBarLifecycle)
         }

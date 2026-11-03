@@ -12,6 +12,7 @@ final class AppCoordinator {
     let loginItemService: LoginItemService
     let uiState: PanelUIState
     let menuBarLifecycle: MenuBarLifecycle
+    let updates: UpdateChecker
 
     private let panelController: PeekPanelController
     private let settingsWindowController: SettingsWindowController
@@ -52,15 +53,27 @@ final class AppCoordinator {
         }
         let uiState = PanelUIState()
         let loginItemService = LoginItemService()
+        let updates: UpdateChecker
+        if isUITesting {
+            // UI-only fixtures never replace the production update endpoint.
+            let path = environment["NIANBOX_UPDATE_FIXTURE"]
+            updates = UpdateChecker(fetch: {
+                guard let path else { throw URLError(.notConnectedToInternet) }
+                return try Data(contentsOf: URL(fileURLWithPath: path))
+            })
+        } else {
+            updates = UpdateChecker()
+        }
         let settingsWindowController = SettingsWindowController(
-            settings: settings, loginItemService: loginItemService, store: store, syncEngine: syncEngine
+            settings: settings, loginItemService: loginItemService, store: store, syncEngine: syncEngine, updates: updates
         )
-        let panelController = PeekPanelController(store: store, settings: settings, uiState: uiState)
+        let panelController = PeekPanelController(store: store, settings: settings, uiState: uiState, updates: updates)
 
         self.settings = settings
         self.store = store
         self.syncEngine = syncEngine
         self.uiState = uiState
+        self.updates = updates
         menuBarLifecycle = MenuBarLifecycle(store: store, syncEngine: syncEngine, uiState: uiState)
         self.panelController = panelController
         self.loginItemService = loginItemService
@@ -86,6 +99,7 @@ final class AppCoordinator {
         }
 
         guard !isRunningTests else { return }
+        updates.start()
         syncEngine.start()
         settings.registerShortcut = { [weak self] shortcut in try self?.newTaskHotKey.replace(with: shortcut) }
         settings.shortcutRecordingChanged = { [weak self] recording in
@@ -105,6 +119,7 @@ final class AppCoordinator {
     }
 
     func stop() {
+        updates.stop()
         syncEngine.stop()
         hoverMonitor.stop()
         newTaskHotKey.unregister()
@@ -124,6 +139,11 @@ final class AppCoordinator {
 
     func openSettings() {
         settingsWindowController.show()
+    }
+
+    func checkForUpdates() {
+        openSettings()
+        Task { await updates.checkNow() }
     }
 
     private func observeMenuTracking() {

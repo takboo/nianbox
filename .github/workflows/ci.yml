@@ -23,6 +23,7 @@ jobs:
       - run: uv sync --project Server --locked --python 3.12
       - run: cd Server && uv run pytest -q
       - run: python3 Scripts/check_version.py
+      - run: python3 -m unittest discover -s Scripts/tests -p 'test_*.py'
       - run: cmp LICENSE Server/LICENSE
       - run: docker build -t nianbox-server-test Server
       - run: python3 Scripts/verify_container.py nianbox-server-test
@@ -37,6 +38,7 @@ jobs:
           ruby-version: "3.4"
           bundler-cache: true
       - run: bundle exec ruby Scripts/verify_project_generation.rb
+      - run: ruby -c Casks/nianbox.rb
       - run: xcodebuild test -project NianBox.xcodeproj -scheme NianBox -destination 'platform=macOS' -derivedDataPath DerivedData -only-testing:NianBoxTests CODE_SIGNING_ALLOWED=NO
       - uses: astral-sh/setup-uv@v7
         if: startsWith(github.ref, 'refs/tags/v')

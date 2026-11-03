@@ -84,7 +84,7 @@ app.build_configurations.each do |config|
   settings['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
   settings['ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME'] = 'AccentColor'
   settings['MARKETING_VERSION'] = File.read(File.join(ROOT, 'VERSION')).strip
-  settings['CURRENT_PROJECT_VERSION'] = '2'
+  settings['CURRENT_PROJECT_VERSION'] = '3'
 end
 unit_tests.build_configurations.each do |config|
   config.build_settings['TEST_HOST'] = '$(BUILT_PRODUCTS_DIR)/NianBox.app/Contents/MacOS/NianBox'

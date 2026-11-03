@@ -42,6 +42,8 @@ Requires **macOS 14 or later**, on Apple Silicon or Intel.
 
 This open-source build is ad-hoc signed and **not Apple-notarized**. macOS may block the first downloaded launch. After checking the source, review System Settings → Privacy & Security → Open Anyway. Keep system security protections enabled.
 
+This repository also provides a Homebrew Cask; see the [installation guide](docs/installation.md). Releases containing update reminders let you check for public versions from the menu bar or Settings, open the release page, and copy a Homebrew upgrade command. Installation remains manual. Consult each public release's notes for the features included in its download.
+
 For cross-device use, follow the [deployment guide (中文)](docs/deployment.md), enter the server URL and token in Mac settings, then [connect Hermes (中文)](docs/hermes.md). Local capture works without a server.
 
 Unsubmitted drafts last for the current App session only; save before quitting. Due dates support display and queries; **scheduled notifications are not implemented**.

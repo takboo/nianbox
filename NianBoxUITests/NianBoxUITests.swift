@@ -47,7 +47,9 @@ final class NianBoxUITests: XCTestCase {
         XCTAssertTrue(actions.waitForExistence(timeout: 2))
         actions.click()
 
-        XCTAssertTrue(app.menuItems["Copy"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.menuItems["Copy content"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.menuItems["Copy title only"].exists)
+        XCTAssertTrue(app.menuItems["Copy as Markdown"].exists)
 
         let editTitle = app.menuItems["Edit title…"]
         XCTAssertTrue(editTitle.waitForExistence(timeout: 2))
@@ -72,6 +74,52 @@ final class NianBoxUITests: XCTestCase {
         let title = app.staticTexts[longTitle]
         XCTAssertTrue(title.waitForExistence(timeout: 2))
         XCTAssertGreaterThan(title.frame.height, 20)
+    }
+
+    func testOneClickCopyCanBePastedIntoCapture() throws {
+        addTask(named: "Copy this task")
+        let title = app.staticTexts["Copy this task"]
+        title.hover()
+        let copy = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "copy-task-")).firstMatch
+        XCTAssertTrue(copy.waitForExistence(timeout: 2))
+        copy.click()
+        XCTAssertTrue(app.staticTexts["Copied title"].waitForExistence(timeout: 2))
+        app.buttons["add-task-button"].click()
+        let draft = app.textFields["new-task-title"]
+        XCTAssertTrue(draft.waitForExistence(timeout: 2))
+        draft.click()
+        draft.typeKey("v", modifierFlags: .command)
+        XCTAssertEqual(draft.value as? String, "Copy this task")
+    }
+
+    func testKeyboardCopyUsesSelectedRowAndLeavesSearchTextCopyAlone() throws {
+        addTask(named: "Alpha copy")
+        addTask(named: "Beta copy")
+        app.staticTexts["Beta copy"].click()
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey("c", modifierFlags: .command)
+        app.buttons["add-task-button"].click()
+        let draft = app.textFields["new-task-title"]
+        XCTAssertTrue(draft.waitForExistence(timeout: 2))
+        draft.click()
+        draft.typeKey("v", modifierFlags: .command)
+        XCTAssertEqual(draft.value as? String, "Alpha copy")
+        draft.typeKey(.escape, modifierFlags: [])
+
+        app.staticTexts["Beta copy"].click()
+        app.buttons["toggle-task-search"].click()
+        let search = app.textFields["task-search-field"]
+        XCTAssertTrue(search.waitForExistence(timeout: 2))
+        search.click()
+        search.typeText("copy")
+        search.typeKey("a", modifierFlags: .command)
+        search.typeKey("c", modifierFlags: .command)
+        search.typeKey(.escape, modifierFlags: [])
+        app.buttons["add-task-button"].click()
+        XCTAssertTrue(draft.waitForExistence(timeout: 2))
+        draft.click()
+        draft.typeKey("v", modifierFlags: .command)
+        XCTAssertEqual(draft.value as? String, "copy")
     }
 
     func testDragReordersTasksWithMatchingPriority() throws {

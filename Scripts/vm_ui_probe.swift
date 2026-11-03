@@ -115,9 +115,12 @@ struct VMUIProbe {
                 let bounds = rect(element)
                 var node: [String: Any] = ["role": string(element, "AXRole") ?? "", "x": bounds.minX,
                     "y": bounds.minY, "width": bounds.width, "height": bounds.height]
-                for field in ["AXIdentifier", "AXTitle", "AXDescription", "AXValue", "AXSubrole"] {
+                for field in ["AXIdentifier", "AXTitle", "AXDescription", "AXValue", "AXSubrole", "AXSelectedText"] {
                     if field == "AXValue", string(element, "AXSubrole") == "AXSecureTextField" { continue }
                     if let value = string(element, field), !value.isEmpty { node[field] = value }
+                    else if field == "AXValue", let value = attribute(element, field) as? NSNumber {
+                        node[field] = value.stringValue
+                    }
                 }
                 if let url = attribute(element, "AXURL") as? URL { node["AXURL"] = url.absoluteString }
                 return node
@@ -125,15 +128,47 @@ struct VMUIProbe {
             try output(["guestModel": model.trimmingCharacters(in: .whitespacesAndNewlines), "pid": pid, "nodes": nodes])
             return
         }
-        if !["key", "move"].contains(args[0]) { app.activate(options: []); settle(0.15) }
+        if !["key", "move", "clickInactive", "clipboard", "setClipboard"].contains(args[0]) {
+            app.activate(options: []); settle(0.15)
+        }
         switch args[0] {
+        case "clipboard":
+            try output(["text": NSPasteboard.general.string(forType: .string) ?? ""])
+            return
+        case "setClipboard":
+            NSPasteboard.general.clearContents()
+            guard NSPasteboard.general.setString(args[2], forType: .string) else {
+                throw ProbeFailure(message: "Could not set guest clipboard")
+            }
         case "press":
             let result = AXUIElementPerformAction(try find(root, args[2]), kAXPressAction as CFString)
             guard result == .success else { throw ProbeFailure(message: "AXPress failed: \(result.rawValue)") }
             settle()
-        case "click", "double":
+        case "click", "double", "clickInactive":
             let bounds = rect(try find(root, args[2]))
             click(CGPoint(x: bounds.midX, y: bounds.midY), twice: args[0] == "double")
+        case "clickAt":
+            let bounds = rect(try find(root, args[2]))
+            guard let x = Double(args[3]), let y = Double(args[4]), (0...1).contains(x), (0...1).contains(y) else {
+                throw ProbeFailure(message: "clickAt requires normalized coordinates")
+            }
+            click(CGPoint(x: bounds.minX + bounds.width * x, y: bounds.minY + bounds.height * y))
+        case "context":
+            let bounds = rect(try find(root, args[2]))
+            let point = CGPoint(x: bounds.midX, y: bounds.midY)
+            mouse(.mouseMoved, point); settle(0.1)
+            for type: CGEventType in [.rightMouseDown, .rightMouseUp] {
+                let event = CGEvent(mouseEventSource: nil, mouseType: type,
+                                    mouseCursorPosition: point, mouseButton: .right)!
+                event.flags = []; event.post(tap: .cghidEventTap); settle(0.08)
+            }
+            settle()
+        case "scroll":
+            let bounds = rect(try find(root, args[2]))
+            mouse(.mouseMoved, CGPoint(x: bounds.midX, y: bounds.midY)); settle(0.1)
+            let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1,
+                                wheel1: -1200, wheel2: 0, wheel3: 0)!
+            event.flags = []; event.post(tap: .cghidEventTap); settle(0.5)
         case "type":
             let text = Array(args[2].utf16)
             let event = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)!
@@ -148,6 +183,14 @@ struct VMUIProbe {
             case "return": key(36)
             case "escape": key(53)
             case "selectAll": key(0, flags: .maskCommand)
+            case "copy": key(8, flags: .maskCommand)
+            case "paste": key(9, flags: .maskCommand)
+            case "up": key(126)
+            case "down": key(125)
+            case "left": key(123)
+            case "right": key(124)
+            case "shiftRight": key(124, flags: .maskShift)
+            case "start": key(126, flags: .maskCommand)
             case "shortcut": key(49, flags: [.maskControl, .maskAlternate])
             case "captureK": key(40, flags: [.maskControl, .maskAlternate])
             case "captureL": key(37, flags: [.maskControl, .maskAlternate])

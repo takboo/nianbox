@@ -5,6 +5,7 @@
 | 需要做什么 | 阅读入口 |
 | --- | --- |
 | 使用面板、快捷键、草稿与状态栏 | [使用指南](usage.md) |
+| Homebrew 安装、升级与应用内更新提醒 | [安装与更新](installation.md) |
 | 部署、升级、备份与恢复数据 | [部署指南](deployment.md) |
 | 配置 Hermes、验证 MCP 接入 | [Hermes 接入](hermes.md) |
 | 构建、测试、维护上游与生成项目 | [开发指南](development.md) |

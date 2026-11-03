@@ -6,6 +6,7 @@ struct TaskSectionView: View {
     @ObservedObject var uiState: PanelUIState
     let status: TaskStatus
     let tasks: [TaskItem]
+    let selectTask: (TaskItem) -> Void
 
     @State private var isDropTargeted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -25,7 +26,7 @@ struct TaskSectionView: View {
 
             VStack(spacing: NianBoxStyle.taskSpacing) {
                 ForEach(tasks) { task in
-                    TaskRowView(store: store, uiState: uiState, task: task)
+                    TaskRowView(store: store, uiState: uiState, task: task) { selectTask(task) }
                         .transition(
                             .asymmetric(
                                 insertion: .move(edge: .top).combined(with: .opacity),

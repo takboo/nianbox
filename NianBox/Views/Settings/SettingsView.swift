@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var serverToken = ""
     @State private var configurationMessage: String?
     @ObservedObject var store: TaskStore
+    @ObservedObject var updates: UpdateChecker
 
     var body: some View {
         // Scrolls when the window is shorter than the content (small screens,
@@ -29,6 +30,10 @@ struct SettingsView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
+
+            UpdateSettingsView(updates: updates)
+
+            Divider()
 
             HStack(alignment: .top, spacing: 28) {
                 CornerPicker(selection: $settings.corner)

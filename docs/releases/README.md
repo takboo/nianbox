@@ -22,6 +22,8 @@
 
 常规 main 推送只更新 `:main` 与 commit 标签，不移动 `stable`。失败可能留下草稿或未提升的版本镜像，它们不代表发布完成。优先重跑失败任务；已公开的源码标签和 DMG 保持不变。Release 已公开但 stable 提升失败时重跑最后任务，并重新核对三个摘要。旧版本不可使 stable 倒退。
 
+正式 Release 完成后，运行 `python3 Scripts/update_homebrew_cask.py --release vX.Y.Z`，再加 `--check` 核对；审阅生成的 `Casks/nianbox.rb`，经用户授权推送后供 tap 用户更新。不要在 Release 公开前修改 Cask 指向新版本。维护命令下载并校验正式 DMG 与摘要，拒绝倒退版本，不自行提交或推送；详见[安装与更新](../installation.md#发布后维护-cask)。应用内提醒直接读取公开稳定 Release，正式发布后即可发现，不使用独立 appcast。
+
 ## 本地打包
 
 从仓库根目录运行，选择未存在的输出目录；打包器拒绝覆盖 DMG：

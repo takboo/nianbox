@@ -6,6 +6,7 @@ struct TaskRowView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var uiState: PanelUIState
     let task: TaskItem
+    let select: () -> Void
 
     @State private var editTitle = ""
     @State private var isHovering = false
@@ -33,16 +34,29 @@ struct TaskRowView: View {
                         .accessibilityIdentifier("edit-task-title-\(task.id.uuidString)")
                 } else {
                     VStack(alignment: .leading, spacing: 3) {
-                    Text(task.title)
-                        .lineLimit(nil)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .layoutPriority(1)
-                        .strikethrough(task.status == .done, color: .secondary)
-                        .foregroundStyle(task.status == .done ? .secondary : .primary)
-                        .accessibilityLabel(task.title)
-                        if let notes = task.notes, !notes.isEmpty {
-                            Text(notes).font(.caption2).foregroundStyle(.secondary).lineLimit(2)
+                        Text(task.title)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .layoutPriority(1)
+                            .strikethrough(task.status == .done, color: .secondary)
+                            .foregroundStyle(task.status == .done ? .secondary : .primary)
+                            .accessibilityLabel(task.title)
+                        if let notes = task.notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Button { uiState.presentNotes(for: task.id) } label: {
+                                Text(notes).font(.caption2).foregroundStyle(.secondary)
+                                    .lineLimit(2).multilineTextAlignment(.leading)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Show full notes and select text")
+                            .accessibilityLabel("Show full notes")
+                            .accessibilityIdentifier("task-notes-\(task.id.uuidString)")
+                            .popover(isPresented: Binding(
+                                get: { uiState.presentedNotesTaskID == task.id },
+                                set: { if !$0 { uiState.dismissNotes(for: task.id) } }
+                            )) {
+                                notesDetail(notes)
+                            }
                         }
                         if let dueAt = task.dueAt {
                             Text(dueAt, format: .dateTime.month().day().hour().minute())
@@ -61,6 +75,10 @@ struct TaskRowView: View {
         .frame(minHeight: NianBoxStyle.rowHeight)
         .padding(.horizontal, 4)
         .background(
+            Color.accentColor.opacity(uiState.selectedTaskID == task.id ? 0.12 : 0),
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+        )
+        .background(
             Color.primary.opacity(isHovering ? 0.055 : 0),
             in: RoundedRectangle(cornerRadius: 8, style: .continuous)
         )
@@ -76,6 +94,10 @@ struct TaskRowView: View {
         .opacity(isBeingDragged ? 0.4 : 1)
         .contentShape(Rectangle())
         .onTapGesture(count: 2, perform: handleDoubleClick)
+        .onTapGesture {
+            guard !isEditing else { return }
+            select()
+        }
         .help(progressToggleHelp)
         .contextMenu { taskActions }
         .onDrag {
@@ -100,7 +122,9 @@ struct TaskRowView: View {
             editTitle = task.title
             DispatchQueue.main.async { isRenameFocused = true }
         }
+        .onDisappear { uiState.dismissNotes(for: task.id) }
         .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(uiState.selectedTaskID == task.id ? [.isSelected] : [])
         .accessibilityIdentifier("task-row-\(task.id.uuidString)")
     }
 
@@ -161,29 +185,70 @@ struct TaskRowView: View {
             .accessibilityLabel("Save title")
             .transition(.scale(scale: 0.8).combined(with: .opacity))
         } else {
-            Menu {
-                taskActions
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 11, weight: .semibold))
-                    .frame(width: 24, height: 24)
-                    .contentShape(Rectangle())
+            HStack(spacing: 0) {
+                Button { uiState.copy(task) } label: {
+                    Image(systemName: copyFeedback?.succeeded == true ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 11, weight: .semibold))
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(copyFeedback?.succeeded == true ? Color.accentColor : Color.secondary)
+                .opacity(isHovering || uiState.selectedTaskID == task.id || copyFeedback != nil ? 1 : 0)
+                .help(copyFeedback?.message ?? "Copy title and full notes")
+                .accessibilityLabel(copyFeedback?.message ?? "Copy content")
+                .accessibilityIdentifier("copy-task-\(task.id.uuidString)")
+
+                Menu {
+                    taskActions
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 11, weight: .semibold))
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .opacity(isHovering ? 1 : 0.38)
+                .help("Edit task")
+                .accessibilityLabel("Edit task")
+                .accessibilityIdentifier("task-actions-\(task.id.uuidString)")
+                .transition(.scale(scale: 0.8).combined(with: .opacity))
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .opacity(isHovering ? 1 : 0.38)
-            .help("Edit task")
-            .accessibilityLabel("Edit task")
-            .accessibilityIdentifier("task-actions-\(task.id.uuidString)")
-            .transition(.scale(scale: 0.8).combined(with: .opacity))
         }
     }
 
-    private var taskActions: some View {
-        TaskActionsMenu(store: store, task: task, editLabel: "Edit title…") {
-            uiState.beginEditing(task)
+    private var copyFeedback: TaskCopyFeedback? {
+        uiState.copyFeedback.flatMap { $0.taskID == task.id ? $0 : nil }
+    }
+
+    private func notesDetail(_ notes: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                Text(task.title).font(.headline).textSelection(.enabled)
+                Spacer()
+                Button { uiState.dismissNotes(for: task.id) } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain).accessibilityLabel("Close notes")
+                    .accessibilityIdentifier("close-task-notes-\(task.id.uuidString)")
+            }
+            ScrollView {
+                Text(notes).frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled)
+                    .accessibilityIdentifier("full-task-notes-\(task.id.uuidString)")
+            }
+            .frame(maxHeight: 280)
+            Button(copyFeedback?.message ?? "Copy content") { uiState.copy(task) }
         }
+        .padding(16)
+        .frame(width: 320)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("task-notes-detail-\(task.id.uuidString)")
+    }
+
+    private var taskActions: some View {
+        TaskActionsMenu(store: store, task: task, editLabel: "Edit title…", edit: {
+            uiState.beginEditing(task)
+        }, copy: { uiState.copy(task, format: $0) })
     }
 
     private func commitRename() {

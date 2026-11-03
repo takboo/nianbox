@@ -4,10 +4,12 @@ struct PeekPanelView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var uiState: PanelUIState
     @ObservedObject var settings: AppSettings
+    @ObservedObject var updates: UpdateChecker
 
     @State private var searchQuery = ""
     @State private var isSearchPresented = false
     @FocusState private var isSearchFocused: Bool
+    @FocusState private var isTaskListFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -39,6 +41,23 @@ struct PeekPanelView: View {
                     .transition(.opacity)
             }
 
+            if let release = updates.availableRelease {
+                Link("NianBox \(release.version) available · View release", destination: release.url)
+                    .font(.caption)
+                    .padding(.horizontal, NianBoxStyle.horizontalPadding)
+                    .padding(.bottom, 8)
+                    .accessibilityIdentifier("panel-app-update")
+            }
+
+            if let feedback = uiState.copyFeedback {
+                Text(feedback.message)
+                    .font(.caption2)
+                    .foregroundStyle(feedback.succeeded ? Color.secondary : .red)
+                    .padding(.horizontal, NianBoxStyle.horizontalPadding)
+                    .padding(.bottom, 8)
+                    .accessibilityIdentifier("copy-feedback")
+            }
+
             if let error = store.lastErrorMessage {
                 Text(error)
                     .font(.caption2)
@@ -55,6 +74,9 @@ struct PeekPanelView: View {
         .animation(reduceMotion ? nil : NianBoxMotion.quick, value: uiState.selectedScope)
         .animation(reduceMotion ? nil : NianBoxMotion.quick, value: uiState.isDraggingTask)
         .animation(reduceMotion ? nil : NianBoxMotion.quick, value: isSearchPresented)
+        .onChange(of: sections.flatMap(\.tasks).map(\.id), initial: true) { _, ids in
+            uiState.reconcileSelection(visibleIDs: ids)
+        }
     }
 
     private func header(activeCount: Int) -> some View {
@@ -240,37 +262,62 @@ struct PeekPanelView: View {
     }
 
     private func taskList(sections: [TaskSectionSnapshot]) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 7) {
-                if uiState.isDraggingTask, uiState.selectedScope == .tasks {
-                    TaskEdgeDropZone(
-                        store: store,
-                        uiState: uiState,
-                        status: .inProgress
-                    )
-                }
+        let visibleTasks = sections.flatMap(\.tasks)
+        let visibleIDs = visibleTasks.map(\.id)
+        let selectedTask = visibleTasks.first { $0.id == uiState.selectedTaskID }
+        return ScrollViewReader { scrollProxy in
+            ScrollView {
+                LazyVStack(spacing: 7) {
+                    if uiState.isDraggingTask, uiState.selectedScope == .tasks {
+                        TaskEdgeDropZone(
+                            store: store,
+                            uiState: uiState,
+                            status: .inProgress
+                        )
+                    }
 
-                ForEach(sections) { section in
-                    TaskSectionView(
-                        store: store,
-                        uiState: uiState,
-                        status: section.status,
-                        tasks: section.tasks
-                    )
-                }
+                    ForEach(sections) { section in
+                        TaskSectionView(
+                            store: store,
+                            uiState: uiState,
+                            status: section.status,
+                            tasks: section.tasks,
+                            selectTask: { task in
+                                uiState.selectTask(task.id)
+                                isTaskListFocused = true
+                            }
+                        )
+                    }
 
-                if uiState.isDraggingTask, uiState.selectedScope == .tasks {
-                    TaskEdgeDropZone(
-                        store: store,
-                        uiState: uiState,
-                        status: .done
-                    )
+                    if uiState.isDraggingTask, uiState.selectedScope == .tasks {
+                        TaskEdgeDropZone(
+                            store: store,
+                            uiState: uiState,
+                            status: .done
+                        )
+                    }
+                }
+                .padding(.horizontal, NianBoxStyle.horizontalPadding - 4)
+                .padding(.bottom, 14)
+            }
+            .scrollIndicators(.never)
+            .focusable()
+            .focused($isTaskListFocused)
+            .focusEffectDisabled()
+            .onMoveCommand { direction in
+                switch direction {
+                case .up: uiState.moveSelection(by: -1, visibleIDs: visibleIDs)
+                case .down: uiState.moveSelection(by: 1, visibleIDs: visibleIDs)
+                default: break
                 }
             }
-            .padding(.horizontal, NianBoxStyle.horizontalPadding - 4)
-            .padding(.bottom, 14)
+            .onCopyCommand(perform: isTaskListFocused && uiState.presentedNotesTaskID == nil
+                           && uiState.editingTaskID == nil
+                           ? selectedTask.map { task in { uiState.copyItems(for: task) } } : nil)
+            .onChange(of: uiState.selectedTaskID) { _, id in
+                if let id, isTaskListFocused { scrollProxy.scrollTo(id) }
+            }
         }
-        .scrollIndicators(.never)
     }
 
     private func emptyState(isSearching: Bool) -> some View {

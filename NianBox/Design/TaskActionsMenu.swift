@@ -1,5 +1,4 @@
 import SwiftUI
-import AppKit
 
 /// Shared context-menu content for a task: edit, copy, priority, move, delete.
 struct TaskActionsMenu: View {
@@ -7,11 +6,14 @@ struct TaskActionsMenu: View {
     let task: TaskItem
     var editLabel = "Edit"
     let edit: () -> Void
+    let copy: (TaskCopyFormat) -> Void
 
     var body: some View {
         Button(editLabel, systemImage: "pencil", action: edit)
 
-        Button("Copy", systemImage: "doc.on.doc", action: copyTitle)
+        ForEach(TaskCopyFormat.allCases, id: \.self) { format in
+            Button(format.menuTitle, systemImage: "doc.on.doc") { copy(format) }
+        }
 
         Menu("Priority") {
             ForEach(TaskPriority.allCases.reversed()) { priority in
@@ -46,11 +48,5 @@ struct TaskActionsMenu: View {
         Button("Delete", systemImage: "trash", role: .destructive) {
             store.delete(task)
         }
-    }
-
-    private func copyTitle() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(task.title, forType: .string)
     }
 }

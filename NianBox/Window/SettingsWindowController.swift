@@ -9,13 +9,15 @@ final class SettingsWindowController: NSWindowController {
         settings: AppSettings,
         loginItemService: LoginItemService,
         store: TaskStore,
-        syncEngine: SyncEngine
+        syncEngine: SyncEngine,
+        updates: UpdateChecker
     ) {
         let rootView = SettingsView(
             settings: settings,
             loginItemService: loginItemService,
             syncEngine: syncEngine,
-            store: store
+            store: store,
+            updates: updates
         )
         let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(contentViewController: hostingController)

@@ -15,6 +15,8 @@ parser.add_argument('--probe', type=Path, required=True)
 parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--fixture', type=Path)
+parser.add_argument('--copy-fixture', type=Path, help='Synthetic offline notes created by vm_copy_fixture.swift in a fresh guest')
+parser.add_argument('--update-fixture', type=Path, help='Task-owned mutable public-release fixture inside the guest app sandbox')
 parser.add_argument('--shortcut-holder', type=Path)
 parser.add_argument('--only', action='append', help='Run only the named check (repeatable)')
 args = parser.parse_args()
@@ -48,7 +50,7 @@ def stop():
         pid = None
 
 
-def launch(normal=False, fixture=None):
+def launch(normal=False, fixture=None, update_fixture=None):
     global pid
     stop()
     # Only our app lives under this acceptance directory; never terminate unrelated processes.
@@ -60,6 +62,8 @@ def launch(normal=False, fixture=None):
         command += ['--env', 'NIANBOX_UI_TESTING=1']
     if fixture:
         command += ['--env', 'NIANBOX_SYNC_FIXTURE=' + str(fixture)]
+    if update_fixture:
+        command += ['--env', 'NIANBOX_UPDATE_FIXTURE=' + str(update_fixture)]
     subprocess.run(command + [str(args.app)], check=True)
     for _ in range(50):
         found = subprocess.run(['/usr/bin/pgrep', '-x', 'NianBox'], capture_output=True, text=True)
@@ -151,7 +155,7 @@ def capture_status_menu():
     wait('id=task-section-done')
     wait('text=Ship prototype')
     probe('click', 'id=task-actions-' + identifier)
-    wait('text=Copy')
+    wait('text=Copy content')
     probe('press', 'text=Edit title…')
     editor = 'id=edit-task-title-' + identifier
     wait(editor)
@@ -331,8 +335,204 @@ def configurable_shortcut():
     wait('id=new-task-title')
 
 
+def copy_setup():
+    fixture = json.loads(args.copy_fixture.read_text())
+    launch(normal=True)
+    close = next((n for n in nodes() if n.get('AXSubrole') == 'AXCloseButton'), None)
+    if close:
+        probe('click', 'subrole=AXCloseButton')
+    probe('move', '1439', '1')
+    wait('text=' + fixture['task']['title'])
+    return fixture
+
+
+def copied(expected):
+    actual = probe('clipboard')['text']
+    assert actual == expected, 'Guest clipboard mismatch: expected %r, got %r' % (expected, actual)
+
+
+def click_copy(task):
+    row = wait('id=task-row-' + task['id'])
+    probe('move', str(row['x'] + row['width'] / 2), str(row['y'] + row['height'] / 2))
+    wait('id=copy-task-' + task['id'])
+    probe('click', 'id=copy-task-' + task['id'])
+
+
+def copy_content_and_menu():
+    fixture = copy_setup()
+    task, plain = fixture['task'], fixture['plainTask']
+    full = task['title'] + '\n\n' + task['notes']
+    probe('setClipboard', 'sentinel before one-click copy')
+    click_copy(task)
+    copied(full)
+    wait('text=Copied title and notes')
+    wait('text=' + task['title'])
+    capture('copy-complete-notes-feedback')
+    for menu, expected in [('Copy title only', task['title']), ('Copy content', full)]:
+        probe('click', 'id=task-actions-' + task['id'])
+        probe('press', 'text=' + menu)
+        copied(expected)
+    probe('context', 'text=' + task['title'])
+    wait('text=Copy title only')
+    probe('press', 'text=Copy title only')
+    copied(task['title'])
+    probe('click', 'id=task-actions-' + task['id'])
+    probe('press', 'text=Copy as Markdown')
+    markdown = probe('clipboard')['text']
+    assert markdown.startswith('- [ ] ' + task['title'])
+    assert 'END-OF-FULL-NOTES' in markdown and 'Priority: High' in markdown and 'Due: ' in markdown
+    assert task['id'] not in markdown
+    click_copy(plain)
+    copied(plain['title'])
+    capture('copy-title-only-feedback')
+
+
+def copy_keyboard_focus():
+    fixture = copy_setup()
+    task, plain = fixture['task'], fixture['plainTask']
+    # Filter to the two fixture rows so previous offline test history is retained.
+    probe('click', 'id=toggle-task-search')
+    probe('click', 'id=task-search-field')
+    probe('type', 'COPY-')
+    subprocess.run(['/usr/bin/open', '-a', 'Finder'], check=True)
+    probe('setClipboard', 'sentinel before inactive-panel copy')
+    probe('clickInactive', 'text=' + task['title'])
+    probe('key', 'copy')
+    copied(task['title'] + '\n\n' + task['notes'])
+    probe('key', 'down')
+    probe('key', 'copy')
+    copied(plain['title'])
+    probe('key', 'up')
+    probe('key', 'copy')
+    copied(task['title'] + '\n\n' + task['notes'])
+    capture('keyboard-row-selection')
+    probe('click', 'id=task-search-field')
+    probe('key', 'selectAll'); probe('key', 'copy')
+    copied('COPY-')
+    # No visible rows must not leave a hidden task as the Copy target.
+    probe('type', 'no-matching-copy-row')
+    wait('text=No matches')
+    probe('key', 'selectAll'); probe('key', 'copy')
+    copied('no-matching-copy-row')
+    probe('key', 'escape')
+    probe('click', 'id=add-task-button')
+    probe('click', 'id=new-task-title')
+    probe('type', 'Draft selection copied')
+    probe('key', 'selectAll'); probe('key', 'copy')
+    copied('Draft selection copied')
+    probe('key', 'escape')
+    probe('click', 'id=task-actions-' + task['id'])
+    probe('press', 'text=Edit title…')
+    probe('click', 'id=edit-task-title-' + task['id'])
+    probe('key', 'selectAll'); probe('key', 'copy')
+    copied(task['title'])
+    probe('key', 'escape')
+    capture('keyboard-text-fields-preserved')
+
+
+def copy_notes_popover():
+    fixture = copy_setup()
+    task = fixture['task']
+    probe('click', 'text=' + task['title'])
+    probe('click', 'id=task-notes-' + task['id'])
+    wait('id=task-notes-detail-' + task['id'])
+    capture('notes-popover-open')
+    # A real normal-mode panel must stay open when the pointer leaves it.
+    probe('move', '700', '700')
+    time.sleep(1)
+    wait('id=task-notes-detail-' + task['id'])
+    wait('text=' + task['title'])
+    probe('clickAt', 'id=full-task-notes-' + task['id'], '0.1', '0.01')
+    probe('key', 'selectAll')
+    probe('key', 'left')
+    for _ in range(10):
+        probe('key', 'shiftRight')
+    probe('key', 'copy')
+    copied('COPY-NOTES')
+    capture('notes-partial-text-selection')
+    before_scroll = wait('id=full-task-notes-' + task['id'])['y']
+    probe('scroll', 'id=task-notes-detail-' + task['id'])
+    assert wait('id=full-task-notes-' + task['id'])['y'] < before_scroll, 'Long notes did not scroll'
+    capture('notes-scrolled-to-end')
+    probe('key', 'selectAll'); probe('key', 'copy')
+    copied(task['notes'])
+    probe('press', 'text=Copy content')
+    copied(task['title'] + '\n\n' + task['notes'])
+    probe('click', 'id=close-task-notes-' + task['id'])
+    wait('id=task-notes-detail-' + task['id'], False)
+    probe('move', '700', '700')
+    time.sleep(1)
+    visible = [w for w in probe('windows')['windows'] if w.get('kCGWindowBounds', {}).get('Height', 0) > 100]
+    assert not visible, 'Panel did not resume auto-hide after closing notes'
+    probe('move', '1439', '1')
+    wait('text=' + task['title'])
+    capture('notes-dismissed-panel-revealed')
+
+
+def update_reminders():
+    def set_release(version):
+        name = 'NianBox-' + version + '-universal.dmg'
+        value = dict(tag_name='v' + version, draft=False, prerelease=False, published_at='2026-11-03T00:00:00Z',
+                     html_url='https://github.com/takboo/nianbox/releases/tag/v' + version,
+                     assets=[dict(name=name, state='uploaded', size=100,
+                                  browser_download_url='https://github.com/takboo/nianbox/releases/download/v' + version + '/' + name)])
+        args.update_fixture.write_text(json.dumps(value))
+    set_release('99.0.0')
+    launch(update_fixture=args.update_fixture)
+    probe('click', 'id=add-task-button')
+    probe('click', 'id=new-task-title')
+    probe('type', 'Keep this draft during update checks')
+    item = next(n for n in nodes() if n.get('AXSubrole') == 'AXMenuExtra' and n.get('AXTitle', '').startswith('NianBox'))
+    probe('click', 'text=' + item['AXTitle'])
+    wait('text=Check for Updates…')
+    probe('press', 'text=Check for Updates…')
+    link = wait('id=download-app-update')
+    assert link.get('AXURL') == 'https://github.com/takboo/nianbox/releases/tag/v99.0.0', link
+    wait('id=panel-app-update')
+    capture('update-available-settings')
+    probe('click', 'id=copy-homebrew-upgrade')
+    copied('brew upgrade --cask takboo/nianbox/nianbox')
+    automatic = wait('id=automatic-update-checks')
+    if automatic.get('AXValue') == '1':
+        probe('click', 'id=automatic-update-checks')
+    assert wait('id=automatic-update-checks').get('AXValue') == '0'
+    current = (args.source / 'VERSION').read_text().strip()
+    set_release(current)
+    probe('click', 'id=check-for-updates')
+    wait("text=You're up to date.")
+    wait('id=download-app-update', False)
+    wait('id=panel-app-update', False)
+    capture('update-current-settings')
+    args.update_fixture.write_text('invalid fixture simulates an unavailable response')
+    probe('click', 'id=check-for-updates')
+    wait('text=Could not check for updates. Check your connection and try again.')
+    capture('update-failure-settings')
+    probe('click', 'subrole=AXCloseButton')
+    assert wait('id=new-task-title').get('AXValue') == 'Keep this draft during update checks'
+    capture('update-keeps-capture-draft')
+    stop()
+    set_release(current)
+    launch(update_fixture=args.update_fixture)
+    # This step checks the persisted preference, independent of another guest
+    # application's first-mouse/focus state after relaunch. The actual menu
+    # click that opens update settings is exercised above.
+    probe('press', 'id=settings-button')
+    assert wait('id=automatic-update-checks').get('AXValue') == '0'
+    probe('click', 'id=check-for-updates')
+    wait("text=You're up to date.")
+    # Restore the default for later normal-mode checks in this synthetic guest.
+    probe('click', 'id=automatic-update-checks')
+    capture('update-preference-reopened')
+
+
 try:
     save()
+    if args.update_fixture:
+        check('app_update_reminders', update_reminders)
+    if args.copy_fixture:
+        check('copy_content_and_menu', copy_content_and_menu)
+        check('copy_keyboard_focus', copy_keyboard_focus)
+        check('copy_notes_popover', copy_notes_popover)
     check('capture_status_menu_history', capture_status_menu)
     check('native_drag_order', drag_order)
     check('draft_scope_recovery', draft_scope_recovery)

@@ -17,7 +17,7 @@ final class PeekPanelController {
     private(set) var currentScreen: NSScreen?
     private(set) var currentCorner: ScreenCorner = .topRight
 
-    init(store: TaskStore, settings: AppSettings, uiState: PanelUIState) {
+    init(store: TaskStore, settings: AppSettings, uiState: PanelUIState, updates: UpdateChecker) {
         self.store = store
         self.settings = settings
         self.uiState = uiState
@@ -28,7 +28,7 @@ final class PeekPanelController {
             backing: .buffered,
             defer: true
         )
-        hostingView = NSHostingView(rootView: PeekPanelView(store: store, uiState: uiState, settings: settings))
+        hostingView = NSHostingView(rootView: PeekPanelView(store: store, uiState: uiState, settings: settings, updates: updates))
 
         configurePanel()
         bindContentSize()
@@ -123,6 +123,16 @@ final class PeekPanelController {
         panel.isMovable = false
         panel.becomesKeyOnlyIfNeeded = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
+
+        // A nonactivating panel normally becomes key only for text editors.
+        // Explicit row selection must also allow list keyboard commands.
+        uiState.$selectedTaskID
+            .removeDuplicates()
+            .sink { [weak self] taskID in
+                guard taskID != nil, let self, self.panel.isVisible else { return }
+                self.panel.makeKeyAndOrderFront(nil)
+            }
+            .store(in: &cancellables)
     }
 
     private func bindContentSize() {

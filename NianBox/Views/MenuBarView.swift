@@ -6,6 +6,7 @@ struct MenuBarView: View {
     @ObservedObject var syncEngine: SyncEngine
     @ObservedObject var settings: AppSettings
     @ObservedObject var uiState: PanelUIState
+    @ObservedObject var updates: UpdateChecker
     let coordinator: AppCoordinator
 
     var body: some View {
@@ -40,6 +41,15 @@ struct MenuBarView: View {
             Label("Settings…", systemImage: "gearshape")
         }
         .keyboardShortcut(",")
+
+        Button("Check for Updates…", systemImage: "arrow.down.circle") {
+            coordinator.checkForUpdates()
+        }
+        .disabled(updates.isChecking)
+        .accessibilityIdentifier("menu-check-for-updates")
+        if let release = updates.availableRelease {
+            Link("NianBox \(release.version) available…", destination: release.url)
+        }
 
         Divider()
 
